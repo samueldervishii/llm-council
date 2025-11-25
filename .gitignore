@@ -1,0 +1,27 @@
+# Environment files
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+frontend/package-lock.json
