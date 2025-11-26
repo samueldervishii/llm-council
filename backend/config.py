@@ -26,8 +26,8 @@ COUNCIL_MODELS = [
         "provider": "openrouter"
     },
     {
-        "id": "google/gemini-2.0-flash-exp:free",
-        "name": "Gemini 2.0 Flash",
+        "id": "nvidia/nemotron-nano-12b-v2-vl:free",
+        "name": "NVIDIA: Nemotron Nano 12B 2 VL",
         "provider": "openrouter"
     },
     {

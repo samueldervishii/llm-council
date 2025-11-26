@@ -44,10 +44,7 @@ function App() {
         </>
       )}
 
-      <TopBar
-        onNewChat={startNewChat}
-        onToggleSidebar={toggleSidebar}
-      />
+      <TopBar onNewChat={startNewChat} onToggleSidebar={toggleSidebar} />
 
       {!hasMessages ? (
         <WelcomeScreen

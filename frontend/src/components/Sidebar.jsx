@@ -1,4 +1,11 @@
-function Sidebar({ sessions, currentSessionId, onSelectSession, onDeleteSession, onClose, onNewChat }) {
+function Sidebar({
+  sessions,
+  currentSessionId,
+  onSelectSession,
+  onDeleteSession,
+  onClose,
+  onNewChat,
+}) {
   const formatDate = (dateString) => {
     if (!dateString) return ''
     const date = new Date(dateString)
@@ -12,6 +19,7 @@ function Sidebar({ sessions, currentSessionId, onSelectSession, onDeleteSession,
   }
 
   const truncateQuestion = (question, maxLength = 40) => {
+    if (!question) return 'Empty session'
     if (question.length <= maxLength) return question
     return question.substring(0, maxLength) + '...'
   }
@@ -40,8 +48,15 @@ function Sidebar({ sessions, currentSessionId, onSelectSession, onDeleteSession,
               onClick={() => onSelectSession(session.id)}
             >
               <div className="session-info">
-                <span className="session-question">{truncateQuestion(session.question)}</span>
-                <span className="session-date">{formatDate(session.created_at)}</span>
+                <span className="session-question">
+                  {truncateQuestion(session.title || session.question)}
+                </span>
+                <div className="session-meta">
+                  <span className="session-date">{formatDate(session.created_at)}</span>
+                  {session.round_count > 1 && (
+                    <span className="session-rounds">{session.round_count} rounds</span>
+                  )}
+                </div>
               </div>
               <button
                 className="session-delete"

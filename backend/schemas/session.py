@@ -19,6 +19,10 @@ class QueryRequest(BaseModel):
     question: str
 
 
+class ContinueRequest(BaseModel):
+    question: str
+
+
 class ModelResponse(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
 
@@ -33,13 +37,21 @@ class PeerReview(BaseModel):
     rankings: List[Dict[str, Any]]
 
 
-class CouncilSession(BaseModel):
-    id: str
+class ConversationRound(BaseModel):
+    """A single round of conversation (question + council responses)."""
     question: str
     responses: List[ModelResponse] = []
     peer_reviews: List[PeerReview] = []
     final_synthesis: Optional[str] = None
-    status: str = "pending"
+    status: str = "pending"  # pending, responses_complete, reviews_complete, synthesized
+
+
+class CouncilSession(BaseModel):
+    id: str
+    title: Optional[str] = None
+    rounds: List[ConversationRound] = []
+    is_deleted: bool = False
+    deleted_at: Optional[str] = None
 
 
 class SynthesisRequest(BaseModel):
@@ -53,8 +65,10 @@ class SessionResponse(BaseModel):
 
 class SessionSummary(BaseModel):
     id: str
+    title: Optional[str] = None
     question: str
     status: str
+    round_count: int = 1
     created_at: Optional[str] = None
 
 

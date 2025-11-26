@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Optional
 
-from schemas import ModelResponse
+from schemas import ModelResponse, ConversationRound
 
 
 class Prompts:
@@ -13,16 +13,52 @@ class Prompts:
         "Just give your best answer based on the question asked."
     )
 
+    COUNCIL_MEMBER_SYSTEM_WITH_CONTEXT = (
+        "You are a helpful assistant participating in a council of AI models. "
+        "You are continuing an ongoing conversation. Use the previous context to provide "
+        "a relevant, direct, and concise answer to the user's follow-up question. "
+        "Do NOT ask follow-up questions. Do NOT ask for clarification. "
+        "Just give your best answer based on the conversation context."
+    )
+
     CHAIRMAN_SYSTEM = (
         "You are the Chairman of an AI council. "
         "Synthesize the collective wisdom into a clear, authoritative final answer."
     )
 
     @staticmethod
+    def build_conversation_context(previous_rounds: List[ConversationRound]) -> str:
+        """Build conversation context from previous rounds."""
+        if not previous_rounds:
+            return ""
+
+        context = "=== PREVIOUS CONVERSATION ===\n"
+        for i, round in enumerate(previous_rounds, 1):
+            context += f"\n--- Round {i} ---\n"
+            context += f"User Question: {round.question}\n"
+            if round.final_synthesis:
+                context += f"Council Verdict: {round.final_synthesis}\n"
+        context += "\n=== END PREVIOUS CONVERSATION ===\n\n"
+        return context
+
+    @staticmethod
+    def build_question_with_context(
+            question: str,
+            previous_rounds: Optional[List[ConversationRound]] = None
+    ) -> str:
+        """Build the question prompt with optional conversation context."""
+        if not previous_rounds:
+            return question
+
+        context = Prompts.build_conversation_context(previous_rounds)
+        return f"{context}Current Question: {question}"
+
+    @staticmethod
     def build_review_prompt(
             question: str,
             valid_responses: List[ModelResponse],
-            reviewer_id: str
+            reviewer_id: str,
+            previous_rounds: Optional[List[ConversationRound]] = None
     ) -> str:
         """Build the peer review prompt for a council member."""
         responses_text = ""
@@ -30,7 +66,11 @@ class Prompts:
             if resp.model_id != reviewer_id:
                 responses_text += f"\n\n--- Response {i + 1} ---\n{resp.response}"
 
-        return f"""You are reviewing responses from other AI models to the following question:
+        context = ""
+        if previous_rounds:
+            context = Prompts.build_conversation_context(previous_rounds)
+
+        return f"""{context}You are reviewing responses from other AI models to the following question:
 
 Question: {question}
 
@@ -54,14 +94,19 @@ Only output the JSON array, nothing else."""
     def build_synthesis_prompt(
             question: str,
             valid_responses: List[ModelResponse],
-            reviews_text: str
+            reviews_text: str,
+            previous_rounds: Optional[List[ConversationRound]] = None
     ) -> str:
         """Build the synthesis prompt for the chairman."""
         responses_text = ""
         for resp in valid_responses:
             responses_text += f"\n\n--- {resp.model_name} ---\n{resp.response}"
 
-        return f"""You are Grok, the Chairman of a council of AI models. Your job is to give the final verdict based on the council's responses.
+        context = ""
+        if previous_rounds:
+            context = Prompts.build_conversation_context(previous_rounds)
+
+        return f"""{context}You are Grok, the Chairman of a council of AI models. Your job is to give the final verdict based on the council's responses.
 
 Original Question: {question}
 

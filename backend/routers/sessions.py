@@ -6,8 +6,10 @@ from core.dependencies import get_session_repository, get_openrouter_client
 from db import SessionRepository
 from schemas import (
     QueryRequest,
+    ContinueRequest,
     SessionResponse,
     CouncilSession,
+    ConversationRound,
     SessionListResponse,
     SessionSummary,
 )
@@ -32,8 +34,10 @@ async def list_sessions(
         created_at = s.get("created_at")
         summaries.append(SessionSummary(
             id=s["id"],
+            title=s.get("title"),
             question=s["question"],
             status=s["status"],
+            round_count=s.get("round_count", 1),
             created_at=created_at.isoformat() if created_at else None
         ))
     return SessionListResponse(sessions=summaries, count=len(summaries))
@@ -47,10 +51,16 @@ async def create_session(
     """Start a new council session with a question."""
     session_id = str(uuid.uuid4())
 
-    session = CouncilSession(
-        id=session_id,
+    # Create first round
+    first_round = ConversationRound(
         question=request.question,
         status="pending"
+    )
+
+    session = CouncilSession(
+        id=session_id,
+        title=request.question[:100],  # Use first 100 chars as title
+        rounds=[first_round]
     )
 
     await repo.create(session)
@@ -82,11 +92,46 @@ async def delete_session(
         session_id: str,
         repo: SessionRepository = Depends(get_session_repository)
 ):
-    """Delete a session."""
-    deleted = await repo.delete(session_id)
+    """Soft delete a session."""
+    deleted = await repo.soft_delete(session_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
     return {"message": "Session deleted"}
+
+
+@router.post("/{session_id}/continue", response_model=SessionResponse)
+async def continue_session(
+        session_id: str,
+        request: ContinueRequest,
+        repo: SessionRepository = Depends(get_session_repository)
+):
+    """Add a new question to an existing session (continue conversation)."""
+    session = await repo.get(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Check if last round is complete
+    if session.rounds:
+        last_round = session.rounds[-1]
+        if last_round.status != "synthesized":
+            raise HTTPException(
+                status_code=400,
+                detail="Previous round must be completed before continuing"
+            )
+
+    # Add new round
+    new_round = ConversationRound(
+        question=request.question,
+        status="pending"
+    )
+    session.rounds.append(new_round)
+
+    await repo.update(session)
+
+    return SessionResponse(
+        session=session,
+        message="New round added. Call /session/{id}/responses to get council responses."
+    )
 
 
 @router.post("/{session_id}/responses", response_model=SessionResponse)
@@ -95,20 +140,26 @@ async def get_responses(
         repo: SessionRepository = Depends(get_session_repository),
         council_service: CouncilService = Depends(get_council_service)
 ):
-    """Get responses from all council members."""
+    """Get responses from all council members for the current round."""
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    if session.status != "pending":
+    if not session.rounds:
+        raise HTTPException(status_code=400, detail="No rounds in session")
+
+    current_round = session.rounds[-1]
+    previous_rounds = session.rounds[:-1] if len(session.rounds) > 1 else None
+
+    if current_round.status != "pending":
         return SessionResponse(
             session=session,
-            message="Responses already collected"
+            message="Responses already collected for this round"
         )
 
-    responses = await council_service.get_council_responses(session)
-    session.responses = responses
-    session.status = "responses_complete"
+    responses = await council_service.get_council_responses(current_round, previous_rounds)
+    current_round.responses = responses
+    current_round.status = "responses_complete"
 
     await repo.update(session)
 
@@ -129,28 +180,34 @@ async def get_reviews(
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    if session.status == "pending":
+    if not session.rounds:
+        raise HTTPException(status_code=400, detail="No rounds in session")
+
+    current_round = session.rounds[-1]
+    previous_rounds = session.rounds[:-1] if len(session.rounds) > 1 else None
+
+    if current_round.status == "pending":
         raise HTTPException(status_code=400, detail="Must collect responses first")
 
-    if session.status in ["reviews_complete", "synthesized"]:
+    if current_round.status in ["reviews_complete", "synthesized"]:
         return SessionResponse(
             session=session,
-            message="Reviews already collected"
+            message="Reviews already collected for this round"
         )
 
-    valid_responses = [r for r in session.responses if not r.error]
+    valid_responses = [r for r in current_round.responses if not r.error]
 
     if len(valid_responses) < 2:
-        session.status = "reviews_complete"
+        current_round.status = "reviews_complete"
         await repo.update(session)
         return SessionResponse(
             session=session,
             message="Not enough valid responses for peer review"
         )
 
-    reviews = await council_service.get_peer_reviews(session)
-    session.peer_reviews = reviews
-    session.status = "reviews_complete"
+    reviews = await council_service.get_peer_reviews(current_round, previous_rounds)
+    current_round.peer_reviews = reviews
+    current_round.status = "reviews_complete"
 
     await repo.update(session)
 
@@ -171,19 +228,25 @@ async def synthesize(
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    if session.status == "synthesized":
+    if not session.rounds:
+        raise HTTPException(status_code=400, detail="No rounds in session")
+
+    current_round = session.rounds[-1]
+    previous_rounds = session.rounds[:-1] if len(session.rounds) > 1 else None
+
+    if current_round.status == "synthesized":
         return SessionResponse(
             session=session,
-            message="Already synthesized"
+            message="Already synthesized for this round"
         )
 
-    if session.status == "pending":
+    if current_round.status == "pending":
         raise HTTPException(status_code=400, detail="Must collect responses first")
 
     try:
-        final_response = await council_service.synthesize_response(session)
-        session.final_synthesis = final_response
-        session.status = "synthesized"
+        final_response = await council_service.synthesize_response(current_round, previous_rounds)
+        current_round.final_synthesis = final_response
+        current_round.status = "synthesized"
 
         await repo.update(session)
 
@@ -201,30 +264,36 @@ async def run_full_council(
         repo: SessionRepository = Depends(get_session_repository),
         council_service: CouncilService = Depends(get_council_service)
 ):
-    """Run the full council process: responses -> reviews -> synthesis."""
+    """Run the full council process for current round: responses -> reviews -> synthesis."""
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    if not session.rounds:
+        raise HTTPException(status_code=400, detail="No rounds in session")
+
+    current_round = session.rounds[-1]
+    previous_rounds = session.rounds[:-1] if len(session.rounds) > 1 else None
+
     # Step 1: Get responses
-    if session.status == "pending":
-        responses = await council_service.get_council_responses(session)
-        session.responses = responses
-        session.status = "responses_complete"
+    if current_round.status == "pending":
+        responses = await council_service.get_council_responses(current_round, previous_rounds)
+        current_round.responses = responses
+        current_round.status = "responses_complete"
         await repo.update(session)
 
     # Step 2: Get peer reviews
-    if session.status == "responses_complete":
-        reviews = await council_service.get_peer_reviews(session)
-        session.peer_reviews = reviews
-        session.status = "reviews_complete"
+    if current_round.status == "responses_complete":
+        reviews = await council_service.get_peer_reviews(current_round, previous_rounds)
+        current_round.peer_reviews = reviews
+        current_round.status = "reviews_complete"
         await repo.update(session)
 
     # Step 3: Synthesize
-    if session.status == "reviews_complete":
-        final_response = await council_service.synthesize_response(session)
-        session.final_synthesis = final_response
-        session.status = "synthesized"
+    if current_round.status == "reviews_complete":
+        final_response = await council_service.synthesize_response(current_round, previous_rounds)
+        current_round.final_synthesis = final_response
+        current_round.status = "synthesized"
         await repo.update(session)
 
     return SessionResponse(

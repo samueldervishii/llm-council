@@ -1,11 +1,11 @@
 import asyncio
 import json
-from typing import List
+from typing import List, Optional
 
 from clients import OpenRouterClient
 from config import COUNCIL_MODELS, CHAIRMAN_MODEL
 from core.logging import logger
-from schemas import ModelResponse, PeerReview, CouncilSession
+from schemas import ModelResponse, PeerReview, ConversationRound
 from .prompts import Prompts
 
 
@@ -15,15 +15,29 @@ class CouncilService:
     def __init__(self, client: OpenRouterClient):
         self.client = client
 
-    async def get_council_responses(self, session: CouncilSession) -> List[ModelResponse]:
+    async def get_council_responses(
+            self,
+            current_round: ConversationRound,
+            previous_rounds: Optional[List[ConversationRound]] = None
+    ) -> List[ModelResponse]:
         """Query all council models in parallel."""
+        has_context = previous_rounds and len(previous_rounds) > 0
+        system_prompt = (
+            Prompts.COUNCIL_MEMBER_SYSTEM_WITH_CONTEXT if has_context
+            else Prompts.COUNCIL_MEMBER_SYSTEM
+        )
+
+        prompt = Prompts.build_question_with_context(
+            question=current_round.question,
+            previous_rounds=previous_rounds
+        )
 
         async def query_model(model: dict) -> ModelResponse:
             try:
                 response = await self.client.chat(
                     model_id=model["id"],
-                    prompt=session.question,
-                    system_prompt=Prompts.COUNCIL_MEMBER_SYSTEM
+                    prompt=prompt,
+                    system_prompt=system_prompt
                 )
                 return ModelResponse(
                     model_id=model["id"],
@@ -42,9 +56,13 @@ class CouncilService:
         responses = await asyncio.gather(*tasks)
         return list(responses)
 
-    async def get_peer_reviews(self, session: CouncilSession) -> List[PeerReview]:
+    async def get_peer_reviews(
+            self,
+            current_round: ConversationRound,
+            previous_rounds: Optional[List[ConversationRound]] = None
+    ) -> List[PeerReview]:
         """Have each council member review and rank the others' responses."""
-        valid_responses = [r for r in session.responses if not r.error]
+        valid_responses = [r for r in current_round.responses if not r.error]
 
         if len(valid_responses) < 2:
             return []
@@ -52,9 +70,10 @@ class CouncilService:
         async def get_review(model: dict) -> PeerReview:
             try:
                 prompt = Prompts.build_review_prompt(
-                    question=session.question,
+                    question=current_round.question,
                     valid_responses=valid_responses,
-                    reviewer_id=model["id"]
+                    reviewer_id=model["id"],
+                    previous_rounds=previous_rounds
                 )
 
                 response = await self.client.chat(
@@ -88,18 +107,23 @@ class CouncilService:
         reviews = await asyncio.gather(*tasks)
         return list(reviews)
 
-    async def synthesize_response(self, session: CouncilSession) -> str:
+    async def synthesize_response(
+            self,
+            current_round: ConversationRound,
+            previous_rounds: Optional[List[ConversationRound]] = None
+    ) -> str:
         """Have the chairman synthesize a final response."""
-        valid_responses = [r for r in session.responses if not r.error]
+        valid_responses = [r for r in current_round.responses if not r.error]
 
         reviews_text = ""
-        for review in session.peer_reviews:
+        for review in current_round.peer_reviews:
             reviews_text += f"\n\n--- Review by {review.reviewer_model} ---\n{json.dumps(review.rankings, indent=2)}"
 
         synthesis_prompt = Prompts.build_synthesis_prompt(
-            question=session.question,
+            question=current_round.question,
             valid_responses=valid_responses,
-            reviews_text=reviews_text
+            reviews_text=reviews_text,
+            previous_rounds=previous_rounds
         )
 
         logger.info(f"Starting synthesis with {CHAIRMAN_MODEL['name']}")

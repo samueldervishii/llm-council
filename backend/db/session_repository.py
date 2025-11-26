@@ -22,9 +22,13 @@ class SessionRepository:
         await self.collection.insert_one(doc)
         return session
 
-    async def get(self, session_id: str) -> Optional[CouncilSession]:
+    async def get(self, session_id: str, include_deleted: bool = False) -> Optional[CouncilSession]:
         """Get a session by ID."""
-        doc = await self.collection.find_one({"id": session_id})
+        query = {"id": session_id}
+        if not include_deleted:
+            query["is_deleted"] = {"$ne": True}
+
+        doc = await self.collection.find_one(query)
         if doc is None:
             return None
         return CouncilSession(**doc)
@@ -39,19 +43,63 @@ class SessionRepository:
         )
         return session
 
-    async def list_all(self, limit: int = 50) -> List[dict]:
+    async def list_all(self, limit: int = 50, include_deleted: bool = False) -> List[dict]:
         """List all sessions with basic info, ordered by most recent."""
+        query = {}
+        if not include_deleted:
+            query["is_deleted"] = {"$ne": True}
+
         cursor = self.collection.find(
-            {},
-            {"id": 1, "question": 1, "status": 1, "created_at": 1, "_id": 0}
+            query,
+            {"id": 1, "title": 1, "rounds": 1, "created_at": 1, "_id": 0}
         ).sort("created_at", -1).limit(limit)
 
         sessions = []
         async for doc in cursor:
-            sessions.append(doc)
+            # Extract first question and last round status for summary
+            rounds = doc.get("rounds", [])
+            first_question = rounds[0]["question"] if rounds else ""
+            last_status = rounds[-1]["status"] if rounds else "pending"
+
+            sessions.append({
+                "id": doc["id"],
+                "title": doc.get("title"),
+                "question": first_question,
+                "status": last_status,
+                "round_count": len(rounds),
+                "created_at": doc.get("created_at")
+            })
         return sessions
 
-    async def delete(self, session_id: str) -> bool:
-        """Delete a session by ID."""
+    async def soft_delete(self, session_id: str) -> bool:
+        """Soft delete a session by ID."""
+        result = await self.collection.update_one(
+            {"id": session_id, "is_deleted": {"$ne": True}},
+            {
+                "$set": {
+                    "is_deleted": True,
+                    "deleted_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        return result.modified_count > 0
+
+    async def restore(self, session_id: str) -> bool:
+        """Restore a soft-deleted session."""
+        result = await self.collection.update_one(
+            {"id": session_id, "is_deleted": True},
+            {
+                "$set": {
+                    "is_deleted": False,
+                    "deleted_at": None,
+                    "updated_at": datetime.utcnow()
+                }
+            }
+        )
+        return result.modified_count > 0
+
+    async def hard_delete(self, session_id: str) -> bool:
+        """Permanently delete a session by ID."""
         result = await self.collection.delete_one({"id": session_id})
         return result.deleted_count > 0

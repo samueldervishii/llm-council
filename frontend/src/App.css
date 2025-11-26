@@ -599,9 +599,23 @@ body {
   text-overflow: ellipsis;
 }
 
+.session-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .session-date {
   font-size: 0.75rem;
   color: #666;
+}
+
+.session-rounds {
+  font-size: 0.7rem;
+  color: #888;
+  background: #333;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
 }
 
 .session-delete {

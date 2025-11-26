@@ -38,6 +38,62 @@ function useCouncil() {
     setMessages((prev) => [...prev, { type, content, modelName, timestamp: new Date() }])
   }
 
+  // Convert a round to messages
+  const roundToMessages = (round) => {
+    const msgs = []
+
+    // User question
+    msgs.push({
+      type: 'user',
+      content: round.question,
+      timestamp: new Date(),
+    })
+
+    // Council responses
+    if (round.responses && round.responses.length > 0) {
+      msgs.push({
+        type: 'system',
+        content: 'Gathering responses from the council...',
+        timestamp: new Date(),
+      })
+
+      for (const resp of round.responses) {
+        if (resp.error) {
+          msgs.push({
+            type: 'error',
+            content: `Error: ${resp.error}`,
+            modelName: resp.model_name,
+            timestamp: new Date(),
+          })
+        } else {
+          msgs.push({
+            type: 'council',
+            content: resp.response,
+            modelName: resp.model_name,
+            timestamp: new Date(),
+          })
+        }
+      }
+    }
+
+    // Chairman's synthesis
+    if (round.final_synthesis) {
+      msgs.push({
+        type: 'system',
+        content: 'Chairman Grok is reviewing all responses...',
+        timestamp: new Date(),
+      })
+      msgs.push({
+        type: 'chairman',
+        content: round.final_synthesis,
+        modelName: 'Grok 4.1 Fast (Chairman)',
+        timestamp: new Date(),
+      })
+    }
+
+    return msgs
+  }
+
   const loadSession = async (id) => {
     try {
       setLoading(true)
@@ -48,53 +104,11 @@ function useCouncil() {
       setSessionId(session.id)
       const loadedMessages = []
 
-      // Add the original question as user message
-      loadedMessages.push({
-        type: 'user',
-        content: session.question,
-        timestamp: new Date()
-      })
-
-      // Add council responses
-      if (session.responses && session.responses.length > 0) {
-        loadedMessages.push({
-          type: 'system',
-          content: 'Gathering responses from the council...',
-          timestamp: new Date()
-        })
-
-        for (const resp of session.responses) {
-          if (resp.error) {
-            loadedMessages.push({
-              type: 'error',
-              content: `Error: ${resp.error}`,
-              modelName: resp.model_name,
-              timestamp: new Date()
-            })
-          } else {
-            loadedMessages.push({
-              type: 'council',
-              content: resp.response,
-              modelName: resp.model_name,
-              timestamp: new Date()
-            })
-          }
+      // Load all rounds
+      if (session.rounds && session.rounds.length > 0) {
+        for (const round of session.rounds) {
+          loadedMessages.push(...roundToMessages(round))
         }
-      }
-
-      // Add chairman's synthesis
-      if (session.final_synthesis) {
-        loadedMessages.push({
-          type: 'system',
-          content: 'Chairman Grok is reviewing all responses...',
-          timestamp: new Date()
-        })
-        loadedMessages.push({
-          type: 'chairman',
-          content: session.final_synthesis,
-          modelName: 'Grok 4.1 Fast (Chairman)',
-          timestamp: new Date()
-        })
       }
 
       setMessages(loadedMessages)
@@ -129,18 +143,29 @@ function useCouncil() {
     addMessage('user', userQuestion)
 
     try {
-      setCurrentStep('Creating session...')
-      const createRes = await axios.post(`${API_BASE}/query`, { question: userQuestion })
-      const newSessionId = createRes.data.session.id
-      setSessionId(newSessionId)
+      let currentSessionId = sessionId
+
+      // If we have an existing session, continue it; otherwise create new
+      if (currentSessionId) {
+        setCurrentStep('Continuing conversation...')
+        await axios.post(`${API_BASE}/session/${currentSessionId}/continue`, {
+          question: userQuestion,
+        })
+      } else {
+        setCurrentStep('Creating session...')
+        const createRes = await axios.post(`${API_BASE}/query`, { question: userQuestion })
+        currentSessionId = createRes.data.session.id
+        setSessionId(currentSessionId)
+      }
 
       setCurrentStep('Council is thinking...')
       addMessage('system', 'Gathering responses from the council...')
 
-      const responsesRes = await axios.post(`${API_BASE}/session/${newSessionId}/responses`)
-      const responses = responsesRes.data.session.responses
+      const responsesRes = await axios.post(`${API_BASE}/session/${currentSessionId}/responses`)
+      const session = responsesRes.data.session
+      const currentRound = session.rounds[session.rounds.length - 1]
 
-      for (const resp of responses) {
+      for (const resp of currentRound.responses) {
         if (resp.error) {
           addMessage('error', `Error: ${resp.error}`, resp.model_name)
         } else {
@@ -149,14 +174,16 @@ function useCouncil() {
       }
 
       setCurrentStep('Council is reviewing...')
-      await axios.post(`${API_BASE}/session/${newSessionId}/reviews`)
+      await axios.post(`${API_BASE}/session/${currentSessionId}/reviews`)
 
       setCurrentStep('Chairman Grok is deciding...')
       addMessage('system', 'Chairman Grok is reviewing all responses...')
 
-      const synthesisRes = await axios.post(`${API_BASE}/session/${newSessionId}/synthesize`)
+      const synthesisRes = await axios.post(`${API_BASE}/session/${currentSessionId}/synthesize`)
+      const finalSession = synthesisRes.data.session
+      const finalRound = finalSession.rounds[finalSession.rounds.length - 1]
 
-      addMessage('chairman', synthesisRes.data.session.final_synthesis, 'Grok 4.1 Fast (Chairman)')
+      addMessage('chairman', finalRound.final_synthesis, 'Grok 4.1 Fast (Chairman)')
 
       // Refresh sessions list
       await fetchSessions()
