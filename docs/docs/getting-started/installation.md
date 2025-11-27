@@ -64,7 +64,7 @@ The API will be available at `http://localhost:8000`.
 !!! success "Verify Installation"
 Visit `http://localhost:8000` in your browser. You should see:
 `json
-    {"message": "LLM Council API", "status": "running", "version": "0.0.5"}
+    {"message": "LLM Council API", "status": "running", "version": "{{ version }}"}
     `
 
 ## Frontend Setup

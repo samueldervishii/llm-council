@@ -124,5 +124,5 @@ Ready to get started? Check out the [Installation Guide](getting-started/install
 ---
 
 <p style="text-align: center; color: #666;">
-LLM Council v0.0.5
+LLM Council v{{ version }}
 </p>

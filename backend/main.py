@@ -1,4 +1,6 @@
+import json
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,7 +40,10 @@ async def lifespan(_app: FastAPI):
     print("MongoDB connection closed")
 
 
-VERSION = "0.0.5"
+# Read version from root version.json
+VERSION_FILE = Path(__file__).parent.parent / "version.json"
+with open(VERSION_FILE) as f:
+    VERSION = json.load(f)["version"]
 
 DESCRIPTION = """
 # LLM Council API
