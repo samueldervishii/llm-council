@@ -1,3 +1,5 @@
+import { API_BASE, FRONTEND_VERSION } from '../config/api'
+
 function Sidebar({
   sessions,
   currentSessionId,
@@ -71,6 +73,15 @@ function Sidebar({
           ))
         )}
       </div>
+
+      <a
+        href="https://llm-council-docs.netlify.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="sidebar-version"
+      >
+        v{FRONTEND_VERSION}
+      </a>
     </div>
   )
 }

@@ -38,11 +38,55 @@ async def lifespan(_app: FastAPI):
     print("MongoDB connection closed")
 
 
+VERSION = "0.0.5"
+
+DESCRIPTION = """
+# LLM Council API
+
+A powerful framework for querying multiple Large Language Models simultaneously and synthesizing their collective intelligence.
+
+## Overview
+
+The LLM Council enables you to:
+- **Query multiple LLMs** in parallel with a single question
+- **Collect peer reviews** where each model evaluates others' responses
+- **Synthesize a final answer** using a chairman model that considers all perspectives
+
+## How It Works
+
+1. **Create a Session** - Start a new council session with your question
+2. **Collect Responses** - Each council member (LLM) provides their answer
+3. **Peer Review** - Models review and rank each other's responses
+4. **Synthesis** - The chairman analyzes all responses and reviews to produce a final, well-rounded answer
+
+## Quick Start
+
+Use `/session/{id}/run-all` to execute the full council process in one call, or step through each phase individually for more control.
+"""
+
+tags_metadata = [
+    {
+        "name": "sessions",
+        "description": "Manage council sessions - create, retrieve, delete, and run the council deliberation process.",
+    },
+    {
+        "name": "models",
+        "description": "View configured council member models and the chairman model.",
+    },
+]
+
 app = FastAPI(
     title="LLM Council API",
-    description="Query multiple LLMs and synthesize their responses",
-    version="1.0.0",
-    lifespan=lifespan
+    description=DESCRIPTION,
+    version=VERSION,
+    lifespan=lifespan,
+    openapi_tags=tags_metadata,
+    contact={
+        "name": "LLM Council",
+    },
+    license_info={
+        "name": "MIT",
+    },
 )
 
 # CORS middleware
@@ -59,10 +103,15 @@ app.include_router(sessions_router)
 app.include_router(models_router)
 
 
-@app.get("/")
+@app.get("/", tags=["health"])
 async def root():
-    """Health check endpoint."""
-    return {"message": "LLM Council API", "status": "running"}
+    """
+    Health Check
+
+    Returns the current status and version of the API.
+    Use this endpoint to verify the API is running.
+    """
+    return {"message": "LLM Council API", "status": "running", "version": VERSION}
 
 
 # Legacy endpoint for frontend compatibility

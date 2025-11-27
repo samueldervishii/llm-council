@@ -655,3 +655,17 @@ body {
 .sidebar-sessions::-webkit-scrollbar-thumb:hover {
   background: #505050;
 }
+
+.sidebar-version {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #333;
+  font-size: 0.75rem;
+  color: #666;
+  text-decoration: none;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.sidebar-version:hover {
+  color: #d4a574;
+}

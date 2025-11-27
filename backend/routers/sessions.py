@@ -27,7 +27,14 @@ async def list_sessions(
         limit: int = 50,
         repo: SessionRepository = Depends(get_session_repository)
 ):
-    """List all sessions ordered by most recent."""
+    """
+    List All Sessions
+
+    Retrieves a list of all council sessions, ordered by most recent first.
+    Returns summary information for each session including title, status, and round count.
+
+    - **limit**: Maximum number of sessions to return (default: 50)
+    """
     sessions = await repo.list_all(limit=limit)
     summaries = []
     for s in sessions:
@@ -48,7 +55,15 @@ async def create_session(
         request: QueryRequest,
         repo: SessionRepository = Depends(get_session_repository)
 ):
-    """Start a new council session with a question."""
+    """
+    Create New Session
+
+    Starts a new council session with your question. This creates a session
+    with a pending first round, ready for council deliberation.
+
+    **Next step**: Call `POST /session/{id}/run-all` to run the full council
+    process, or use individual endpoints for step-by-step control.
+    """
     session_id = str(uuid.uuid4())
 
     # Create first round
@@ -76,7 +91,12 @@ async def get_session(
         session_id: str,
         repo: SessionRepository = Depends(get_session_repository)
 ):
-    """Get the current state of a session."""
+    """
+    Get Session Details
+
+    Retrieves the complete state of a session including all rounds,
+    responses, peer reviews, and synthesis results.
+    """
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -92,7 +112,12 @@ async def delete_session(
         session_id: str,
         repo: SessionRepository = Depends(get_session_repository)
 ):
-    """Soft delete a session."""
+    """
+    Delete Session
+
+    Soft-deletes a session. The session data is preserved but marked as deleted
+    and will no longer appear in session lists.
+    """
     deleted = await repo.soft_delete(session_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -105,7 +130,15 @@ async def continue_session(
         request: ContinueRequest,
         repo: SessionRepository = Depends(get_session_repository)
 ):
-    """Add a new question to an existing session (continue conversation)."""
+    """
+    Continue Session
+
+    Adds a follow-up question to an existing session, creating a new round.
+    The previous round must be fully completed (synthesized) before continuing.
+
+    This allows for multi-turn conversations where the council can build on
+    previous context and answers.
+    """
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -140,7 +173,16 @@ async def get_responses(
         repo: SessionRepository = Depends(get_session_repository),
         council_service: CouncilService = Depends(get_council_service)
 ):
-    """Get responses from all council members for the current round."""
+    """
+    Collect Council Responses
+
+    Queries all council member LLMs in parallel and collects their responses
+    to the current round's question. Each model provides its independent answer.
+
+    **Step 1 of 3** in the council deliberation process.
+
+    **Next step**: Call `POST /session/{id}/reviews` for peer reviews.
+    """
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -175,7 +217,17 @@ async def get_reviews(
         repo: SessionRepository = Depends(get_session_repository),
         council_service: CouncilService = Depends(get_council_service)
 ):
-    """Have each council member review and rank the others' responses."""
+    """
+    Collect Peer Reviews
+
+    Each council member reviews and ranks the other models' responses.
+    This provides multiple perspectives on the quality and accuracy of each answer.
+
+    **Step 2 of 3** in the council deliberation process.
+    Requires responses to be collected first.
+
+    **Next step**: Call `POST /session/{id}/synthesize` for the final synthesis.
+    """
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -223,7 +275,18 @@ async def synthesize(
         repo: SessionRepository = Depends(get_session_repository),
         council_service: CouncilService = Depends(get_council_service)
 ):
-    """Have the chairman synthesize a final response."""
+    """
+    Synthesize Final Answer
+
+    The chairman model analyzes all council responses and peer reviews to
+    produce a comprehensive, well-reasoned final answer that incorporates
+    the best insights from each council member.
+
+    **Step 3 of 3** in the council deliberation process.
+    Completes the current round.
+
+    **Next step**: Optionally call `POST /session/{id}/continue` to ask a follow-up question.
+    """
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -264,7 +327,19 @@ async def run_full_council(
         repo: SessionRepository = Depends(get_session_repository),
         council_service: CouncilService = Depends(get_council_service)
 ):
-    """Run the full council process for current round: responses -> reviews -> synthesis."""
+    """
+    Run Full Council Process
+
+    Executes the complete council deliberation in one call:
+
+    1. **Collect Responses** - Query all council members
+    2. **Peer Reviews** - Each model evaluates the others
+    3. **Synthesis** - Chairman produces the final answer
+
+    This is the recommended endpoint for most use cases. Use the individual
+    step endpoints (`/responses`, `/reviews`, `/synthesize`) only when you need
+    fine-grained control over the process.
+    """
     session = await repo.get(session_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
