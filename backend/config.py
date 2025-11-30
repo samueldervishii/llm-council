@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_database: str = "llm_council"
 
+    # CORS - comma-separated list of allowed origins for production
+    cors_origins: str = ""
+
     class Config:
         env_file = ".env"
 
