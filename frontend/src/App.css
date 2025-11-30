@@ -1084,3 +1084,61 @@ body {
   color: #d4a574;
   font-weight: 600;
 }
+
+/* Mobile responsive styles for voting */
+@media (max-width: 600px) {
+  .voting-visualization {
+    padding: 0 0.5rem;
+  }
+
+  .voting-content {
+    padding: 0.75rem;
+  }
+
+  .voting-row {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .voting-position {
+    width: 1.75rem;
+    font-size: 0.85rem;
+  }
+
+  .voting-model {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8rem;
+  }
+
+  .voting-bar-container {
+    width: 60px;
+  }
+
+  .voting-score {
+    width: 1.5rem;
+    font-size: 0.8rem;
+  }
+
+  .voting-matrix {
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .voting-matrix table {
+    min-width: 320px;
+    font-size: 0.75rem;
+  }
+
+  .voting-matrix th,
+  .voting-matrix td {
+    padding: 0.4rem 0.3rem;
+    white-space: nowrap;
+  }
+
+  .voting-matrix th {
+    font-size: 0.7rem;
+  }
+}
