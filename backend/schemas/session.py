@@ -10,11 +10,26 @@ class ModelProvider(str, Enum):
     GOOGLE = "google"
 
 
+class CouncilMode(str, Enum):
+    """Council deliberation modes."""
+    FORMAL = "formal"  # Traditional: parallel responses → peer reviews → synthesis
+    CHAT = "chat"  # Group chat: sequential, conversational responses
+
+
 class ModelInfo(BaseModel):
     """Information about a configured LLM model."""
     id: str = Field(..., description="Unique model identifier (e.g., 'openai/gpt-4')")
     name: str = Field(..., description="Human-readable model name")
     provider: ModelProvider = Field(..., description="The provider hosting this model")
+
+
+class ChatMessage(BaseModel):
+    """A single message in group chat mode."""
+    model_id: str = Field(..., description="The model's unique identifier")
+    model_name: str = Field(..., description="Human-readable name of the model")
+    content: str = Field(..., description="The message content")
+    reply_to: Optional[str] = Field(None, description="Model name this is replying to, if any")
+    response_time_ms: Optional[int] = Field(None, description="Response time in milliseconds")
 
 
 class QueryRequest(BaseModel):
@@ -24,6 +39,14 @@ class QueryRequest(BaseModel):
         description="The question or prompt to send to all council members",
         min_length=1,
         json_schema_extra={"example": "What are the best practices for building scalable APIs?"}
+    )
+    mode: CouncilMode = Field(
+        default=CouncilMode.FORMAL,
+        description="Council mode: 'formal' for structured deliberation, 'chat' for group conversation"
+    )
+    selected_models: Optional[List[str]] = Field(
+        default=None,
+        description="List of model IDs to use. If not provided, all available models are used."
     )
 
 
@@ -45,6 +68,7 @@ class ModelResponse(BaseModel):
     model_name: str = Field(..., description="Human-readable name of the model")
     response: str = Field(..., description="The model's response to the question")
     error: Optional[str] = Field(None, description="Error message if the model failed to respond")
+    response_time_ms: Optional[int] = Field(None, description="Response time in milliseconds")
 
 
 class PeerReview(BaseModel):
@@ -60,32 +84,51 @@ class ConversationRound(BaseModel):
     """
     A single round of council deliberation.
 
-    Each round consists of:
+    In FORMAL mode:
     1. A question posed to the council
     2. Responses from each council member
     3. Peer reviews where models evaluate each other
     4. A final synthesis by the chairman
+
+    In CHAT mode:
+    1. A question posed to the council
+    2. Sequential chat messages where models respond and reply to each other
     """
     question: str = Field(..., description="The question for this round")
+    mode: CouncilMode = Field(
+        default=CouncilMode.FORMAL,
+        description="The mode used for this round"
+    )
+    selected_models: Optional[List[str]] = Field(
+        default=None,
+        description="List of model IDs to use for this round. If None, all models are used."
+    )
+    # Formal mode fields
     responses: List[ModelResponse] = Field(
         default=[],
-        description="Responses from all council members"
+        description="Responses from all council members (formal mode)"
     )
     peer_reviews: List[PeerReview] = Field(
         default=[],
-        description="Peer reviews from each council member"
+        description="Peer reviews from each council member (formal mode)"
     )
     final_synthesis: Optional[str] = Field(
         None,
-        description="The chairman's synthesized final answer"
+        description="The chairman's synthesized final answer (formal mode)"
     )
+    # Chat mode fields
+    chat_messages: List[ChatMessage] = Field(
+        default=[],
+        description="Sequential chat messages (chat mode)"
+    )
+    # Common fields
     status: str = Field(
         default="pending",
-        description="Current status: pending, responses_complete, reviews_complete, or synthesized"
+        description="Current status: pending, responses_complete, reviews_complete, synthesized, or chat_complete"
     )
     disagreement_analysis: Optional[List[dict]] = Field(
         default=None,
-        description="Analysis of disagreement among council members"
+        description="Analysis of disagreement among council members (formal mode)"
     )
 
 
@@ -104,6 +147,9 @@ class CouncilSession(BaseModel):
     )
     is_deleted: bool = Field(default=False, description="Whether the session has been soft-deleted")
     deleted_at: Optional[str] = Field(None, description="ISO timestamp when session was deleted")
+    # Pinning
+    is_pinned: bool = Field(default=False, description="Whether the session is pinned to top")
+    pinned_at: Optional[str] = Field(None, description="ISO timestamp when session was pinned")
     # Sharing fields
     is_shared: bool = Field(default=False, description="Whether the session is publicly shared")
     share_token: Optional[str] = Field(None, description="Unique token for public sharing")
@@ -129,6 +175,13 @@ class SessionSummary(BaseModel):
     status: str = Field(..., description="Current session status")
     round_count: int = Field(default=1, description="Number of conversation rounds")
     created_at: Optional[str] = Field(None, description="ISO timestamp of creation")
+    is_pinned: bool = Field(default=False, description="Whether the session is pinned")
+
+
+class SessionUpdateRequest(BaseModel):
+    """Request to update session properties."""
+    title: Optional[str] = Field(None, description="New title for the session")
+    is_pinned: Optional[bool] = Field(None, description="Pin or unpin the session")
 
 
 class SessionListResponse(BaseModel):
@@ -155,3 +208,16 @@ class DisagreementAnalysis(BaseModel):
         description="Disagreement score from 0 (consensus) to 1 (high disagreement)"
     )
     has_disagreement: bool = Field(default=False, description="Whether significant disagreement exists")
+
+
+class AvailableModel(BaseModel):
+    """An available model for council selection."""
+    id: str = Field(..., description="Model identifier")
+    name: str = Field(..., description="Human-readable model name")
+    is_chairman: bool = Field(default=False, description="Whether this model is the chairman")
+
+
+class AvailableModelsResponse(BaseModel):
+    """Response containing available models for selection."""
+    models: List[AvailableModel] = Field(..., description="List of available models")
+    chairman: AvailableModel = Field(..., description="The chairman model")

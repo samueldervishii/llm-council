@@ -29,21 +29,54 @@ The easiest way to use LLM Council is through the web interface.
 
 Navigate to `http://localhost:5173` in your browser.
 
-### 2. Ask a Question
+### 2. Choose Your Council Mode
 
-Type your question in the input field and press Enter or click the send button.
+Select between two modes:
 
-### 3. Watch the Council Deliberate
+- **Formal Mode**: Traditional council process with parallel responses, peer reviews, and chairman synthesis
+- **Chat Mode**: Group chat style where models respond sequentially and can reply to each other
+
+### 3. Select Your Models
+
+Before asking a question, you can choose which models participate in the council using the model selection panel.
+
+### 4. Ask a Question
+
+Type your question in the input field. Use `Ctrl+Enter` to send.
+
+### 5. Watch the Council Deliberate
 
 The council will:
 
-1. Query all member LLMs
-2. Collect peer reviews
-3. Synthesize a final answer
+1. Query all member LLMs (response times displayed for each)
+2. Collect peer reviews (formal mode)
+3. Synthesize a final answer (formal mode)
 
-### 4. Continue the Conversation
+### 6. Continue the Conversation
 
 Ask follow-up questions to dive deeper into the topic.
+
+### UI Features
+
+| Feature | Description |
+|---------|-------------|
+| **Theme Toggle** | Switch between dark and light mode using the sun/moon icon |
+| **Copy Response** | Hover over any model response to reveal the copy button |
+| **Response Times** | See how long each model took to respond |
+| **Pin Sessions** | Pin important chats to keep them at the top of your history |
+| **Rename Sessions** | Give sessions custom names for easy reference |
+| **Share Sessions** | Generate shareable links for read-only access |
+| **Export** | Download sessions as Markdown files |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Enter` | Send message |
+| `Ctrl+N` | New chat |
+| `Ctrl+B` | Toggle sidebar |
+| `Ctrl+F` | Search chats (in sidebar) |
+| `Escape` | Clear search |
 
 ## Using the API
 

@@ -16,6 +16,29 @@ function SharedSession() {
   const roundToMessages = (round) => {
     const msgs = []
 
+    // User question
+    msgs.push({
+      type: 'user',
+      content: round.question,
+      timestamp: new Date(),
+    })
+
+    // Check if this is a chat mode round
+    if (round.mode === 'chat' && round.chat_messages && round.chat_messages.length > 0) {
+      // Chat mode: display messages as a group chat
+      for (const chatMsg of round.chat_messages) {
+        msgs.push({
+          type: 'chat',
+          content: chatMsg.content,
+          modelName: chatMsg.model_name,
+          replyTo: chatMsg.reply_to,
+          timestamp: new Date(),
+        })
+      }
+      return msgs
+    }
+
+    // Formal mode: traditional council responses
     // Build disagreement lookup by model_id
     const disagreementMap = {}
     if (round.disagreement_analysis) {
@@ -23,12 +46,6 @@ function SharedSession() {
         disagreementMap[analysis.model_id] = analysis
       }
     }
-
-    msgs.push({
-      type: 'user',
-      content: round.question,
-      timestamp: new Date(),
-    })
 
     if (round.responses && round.responses.length > 0) {
       msgs.push({

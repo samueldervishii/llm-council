@@ -51,7 +51,7 @@ class SessionRepository:
 
         cursor = self.collection.find(
             query,
-            {"id": 1, "title": 1, "rounds": 1, "created_at": 1, "_id": 0}
+            {"id": 1, "title": 1, "rounds": 1, "created_at": 1, "is_pinned": 1, "pinned_at": 1, "_id": 0}
         ).sort("created_at", -1).limit(limit)
 
         sessions = []
@@ -67,7 +67,8 @@ class SessionRepository:
                 "question": first_question,
                 "status": last_status,
                 "round_count": len(rounds),
-                "created_at": doc.get("created_at")
+                "created_at": doc.get("created_at"),
+                "is_pinned": doc.get("is_pinned", False)
             })
         return sessions
 

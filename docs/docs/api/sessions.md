@@ -27,7 +27,8 @@ GET /sessions
       "question": "What are API design best practices?",
       "status": "synthesized",
       "round_count": 2,
-      "created_at": "2024-01-15T10:30:00Z"
+      "created_at": "2024-01-15T10:30:00Z",
+      "is_pinned": false
     }
   ],
   "count": 1
@@ -68,13 +69,17 @@ POST /session
 
 ```json
 {
-  "question": "What are the best practices for error handling?"
+  "question": "What are the best practices for error handling?",
+  "mode": "formal",
+  "selected_models": ["openai/gpt-4o", "anthropic/claude-3.5-sonnet"]
 }
 ```
 
-| Field      | Type   | Required | Description                     |
-| ---------- | ------ | -------- | ------------------------------- |
-| `question` | string | Yes      | The question to ask the council |
+| Field             | Type     | Required | Description                                                                 |
+| ----------------- | -------- | -------- | --------------------------------------------------------------------------- |
+| `question`        | string   | Yes      | The question to ask the council                                             |
+| `mode`            | string   | No       | `"formal"` (default) for traditional process, `"chat"` for group chat mode  |
+| `selected_models` | string[] | No       | List of model IDs to use. If not provided, all available models are used    |
 
 ### Response
 
@@ -183,6 +188,82 @@ DELETE /session/{session_id}
 
 ---
 
+## Update Session
+
+Update session properties like title or pin status.
+
+```
+PATCH /session/{session_id}
+```
+
+### Request Body
+
+```json
+{
+  "title": "New Session Title",
+  "is_pinned": true
+}
+```
+
+| Field       | Type    | Required | Description                              |
+| ----------- | ------- | -------- | ---------------------------------------- |
+| `title`     | string  | No       | New title for the session                |
+| `is_pinned` | boolean | No       | Whether to pin the session to the top    |
+
+### Response
+
+Returns the updated session.
+
+### Example
+
+```python
+import requests
+
+session_id = "550e8400-e29b-41d4-a716-446655440000"
+
+# Rename and pin a session
+response = requests.patch(
+    f"http://localhost:8000/session/{session_id}",
+    json={"title": "API Design Discussion", "is_pinned": True}
+)
+```
+
+---
+
+## Share Session
+
+Generate a shareable link for a session.
+
+```
+POST /session/{session_id}/share
+```
+
+### Response
+
+```json
+{
+  "share_token": "abc123xyz",
+  "share_url": "/shared/abc123xyz",
+  "message": "Session shared successfully"
+}
+```
+
+---
+
+## Get Shared Session
+
+Retrieve a shared session (read-only, no authentication required).
+
+```
+GET /shared/{share_token}
+```
+
+### Response
+
+Returns the full session object.
+
+---
+
 ## Continue Session
 
 Add a follow-up question to an existing session.
@@ -250,7 +331,8 @@ Returns the session with updated responses in the current round.
             "model_id": "openai/gpt-4o",
             "model_name": "GPT-4o",
             "response": "Here are my thoughts...",
-            "error": null
+            "error": null,
+            "response_time_ms": 2450
           }
           // ... more responses
         ]

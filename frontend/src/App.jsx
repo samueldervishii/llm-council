@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { AppLoader, TopBar, WelcomeScreen, ChatMessages, Sidebar } from './components'
 import useCouncil from './hooks/useCouncil'
+import useTheme from './hooks/useTheme'
 import './App.css'
 
 function App() {
@@ -14,14 +16,42 @@ function App() {
     sessionId,
     sessions,
     sidebarOpen,
+    mode,
+    setMode,
+    availableModels,
+    selectedModels,
+    toggleModel,
+    selectAllModels,
     startCouncil,
     startNewChat,
     loadSession,
     deleteSession,
+    renameSession,
+    togglePinSession,
     toggleSidebar,
     shareSession,
     exportSession,
   } = useCouncil()
+
+  const { theme, toggleTheme } = useTheme()
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+N or Cmd+N for new chat
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault()
+        startNewChat()
+      }
+      // Ctrl+B or Cmd+B for toggle sidebar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault()
+        toggleSidebar()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [startNewChat, toggleSidebar])
 
   if (appLoading) {
     return <AppLoader />
@@ -37,6 +67,8 @@ function App() {
             currentSessionId={sessionId}
             onSelectSession={loadSession}
             onDeleteSession={deleteSession}
+            onRenameSession={renameSession}
+            onTogglePinSession={togglePinSession}
             onShareSession={shareSession}
             onClose={toggleSidebar}
             onNewChat={() => {
@@ -53,6 +85,8 @@ function App() {
         sessionId={sessionId}
         onShare={shareSession}
         onExport={exportSession}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {!hasMessages ? (
@@ -61,6 +95,12 @@ function App() {
           onQuestionChange={setQuestion}
           onSubmit={startCouncil}
           loading={loading}
+          mode={mode}
+          onModeChange={setMode}
+          availableModels={availableModels}
+          selectedModels={selectedModels}
+          onToggleModel={toggleModel}
+          onSelectAllModels={selectAllModels}
         />
       ) : (
         <ChatMessages

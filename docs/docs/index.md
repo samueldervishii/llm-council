@@ -44,6 +44,30 @@ Instead of relying on a single AI model, LLM Council leverages the collective in
 
     Continue conversations with context from previous rounds
 
+-   :material-forum:{ .lg .middle } **Group Chat Mode**
+
+    ---
+
+    Watch models discuss and reply to each other in real-time
+
+-   :material-tune:{ .lg .middle } **Model Selection**
+
+    ---
+
+    Choose which models participate in each council session
+
+-   :material-theme-light-dark:{ .lg .middle } **Dark/Light Theme**
+
+    ---
+
+    Switch between dark and light mode for comfortable viewing
+
+-   :material-pin:{ .lg .middle } **Session Management**
+
+    ---
+
+    Pin, rename, share, and export your council sessions
+
 </div>
 
 ## How It Works

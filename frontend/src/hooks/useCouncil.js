@@ -11,13 +11,29 @@ function useCouncil() {
   const [sessionId, setSessionId] = useState(null)
   const [sessions, setSessions] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mode, setMode] = useState('formal') // 'formal' or 'chat'
+  const [availableModels, setAvailableModels] = useState([])
+  const [selectedModels, setSelectedModels] = useState([]) // Empty = all models
+
+  // Fetch available models on mount
+  const fetchModels = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/models`)
+      setAvailableModels(res.data.models)
+      // Default: select all models
+      setSelectedModels(res.data.models.map((m) => m.id))
+    } catch (error) {
+      console.error('Error fetching models:', error)
+    }
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setAppLoading(false)
+      fetchModels()
     }, 2000)
     return () => clearTimeout(timer)
-  }, [])
+  }, [fetchModels])
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -34,21 +50,13 @@ function useCouncil() {
     }
   }, [appLoading, fetchSessions])
 
-  const addMessage = (type, content, modelName = null) => {
-    setMessages((prev) => [...prev, { type, content, modelName, timestamp: new Date() }])
+  const addMessage = (type, content, modelName = null, extras = {}) => {
+    setMessages((prev) => [...prev, { type, content, modelName, timestamp: new Date(), ...extras }])
   }
 
   // Convert a round to messages
   const roundToMessages = (round) => {
     const msgs = []
-
-    // Build disagreement lookup by model_id
-    const disagreementMap = {}
-    if (round.disagreement_analysis) {
-      for (const analysis of round.disagreement_analysis) {
-        disagreementMap[analysis.model_id] = analysis
-      }
-    }
 
     // User question
     msgs.push({
@@ -56,6 +64,31 @@ function useCouncil() {
       content: round.question,
       timestamp: new Date(),
     })
+
+    // Check if this is a chat mode round
+    if (round.mode === 'chat' && round.chat_messages && round.chat_messages.length > 0) {
+      // Chat mode: display messages as a group chat
+      for (const chatMsg of round.chat_messages) {
+        msgs.push({
+          type: 'chat',
+          content: chatMsg.content,
+          modelName: chatMsg.model_name,
+          replyTo: chatMsg.reply_to,
+          responseTime: chatMsg.response_time_ms,
+          timestamp: new Date(),
+        })
+      }
+      return msgs
+    }
+
+    // Formal mode: traditional council responses
+    // Build disagreement lookup by model_id
+    const disagreementMap = {}
+    if (round.disagreement_analysis) {
+      for (const analysis of round.disagreement_analysis) {
+        disagreementMap[analysis.model_id] = analysis
+      }
+    }
 
     // Council responses
     if (round.responses && round.responses.length > 0) {
@@ -78,6 +111,7 @@ function useCouncil() {
             type: 'council',
             content: resp.response,
             modelName: resp.model_name,
+            responseTime: resp.response_time_ms,
             timestamp: new Date(),
             disagreement: disagreementMap[resp.model_id] || null,
           })
@@ -153,6 +187,29 @@ function useCouncil() {
     }
   }
 
+  const renameSession = async (id, newTitle) => {
+    try {
+      await axios.patch(`${API_BASE}/session/${id}`, { title: newTitle })
+      await fetchSessions()
+    } catch (error) {
+      console.error('Error renaming session:', error)
+      throw error
+    }
+  }
+
+  const togglePinSession = async (id) => {
+    try {
+      // Find current pin status
+      const session = sessions.find((s) => s.id === id)
+      const newPinned = !session?.is_pinned
+      await axios.patch(`${API_BASE}/session/${id}`, { is_pinned: newPinned })
+      await fetchSessions()
+    } catch (error) {
+      console.error('Error toggling pin:', error)
+      throw error
+    }
+  }
+
   const shareSession = async (id) => {
     try {
       const res = await axios.post(`${API_BASE}/session/${id}/share`)
@@ -220,45 +277,89 @@ function useCouncil() {
     try {
       let currentSessionId = sessionId
 
+      // Determine the mode to use
+      let activeMode = mode
+
       // If we have an existing session, continue it; otherwise create new
       if (currentSessionId) {
         setCurrentStep('Continuing conversation...')
-        await axios.post(`${API_BASE}/session/${currentSessionId}/continue`, {
+        const continueRes = await axios.post(`${API_BASE}/session/${currentSessionId}/continue`, {
           question: userQuestion,
         })
+        // Get the mode from the session (inherit from first round)
+        const session = continueRes.data.session
+        activeMode = session.rounds[0]?.mode || mode
       } else {
         setCurrentStep('Creating session...')
-        const createRes = await axios.post(`${API_BASE}/query`, { question: userQuestion })
+        const createRes = await axios.post(`${API_BASE}/query`, {
+          question: userQuestion,
+          mode: mode,
+          selected_models: selectedModels.length > 0 ? selectedModels : null,
+        })
         currentSessionId = createRes.data.session.id
         setSessionId(currentSessionId)
+        activeMode = mode
       }
 
-      setCurrentStep('Council is thinking...')
-      addMessage('system', 'Gathering responses from the council...')
+      if (activeMode === 'chat') {
+        // Chat mode: use run-all for group chat
+        setCurrentStep('Models are typing...')
 
-      const responsesRes = await axios.post(`${API_BASE}/session/${currentSessionId}/responses`)
-      const session = responsesRes.data.session
-      const currentRound = session.rounds[session.rounds.length - 1]
+        const chatRes = await axios.post(`${API_BASE}/session/${currentSessionId}/run-all`)
+        const session = chatRes.data.session
+        const currentRound = session.rounds[session.rounds.length - 1]
 
-      for (const resp of currentRound.responses) {
-        if (resp.error) {
-          addMessage('error', `Error: ${resp.error}`, resp.model_name)
-        } else {
-          addMessage('council', resp.response, resp.model_name)
+        // Add chat messages one by one with delay for visual effect
+        for (let i = 0; i < currentRound.chat_messages.length; i++) {
+          const chatMsg = currentRound.chat_messages[i]
+          setCurrentStep(`${chatMsg.model_name} is typing...`)
+
+          // Small delay between messages for natural feel
+          await new Promise((resolve) => setTimeout(resolve, 400))
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              type: 'chat',
+              content: chatMsg.content,
+              modelName: chatMsg.model_name,
+              replyTo: chatMsg.reply_to,
+              responseTime: chatMsg.response_time_ms,
+              timestamp: new Date(),
+            },
+          ])
         }
+      } else {
+        // Formal mode: traditional 3-step process
+        setCurrentStep('Council is thinking...')
+        addMessage('system', 'Gathering responses from the council...')
+
+        const responsesRes = await axios.post(`${API_BASE}/session/${currentSessionId}/responses`)
+        const session = responsesRes.data.session
+        const currentRound = session.rounds[session.rounds.length - 1]
+
+        for (const resp of currentRound.responses) {
+          if (resp.error) {
+            addMessage('error', `Error: ${resp.error}`, resp.model_name)
+          } else {
+            addMessage('council', resp.response, resp.model_name, {
+              responseTime: resp.response_time_ms,
+            })
+          }
+        }
+
+        setCurrentStep('Council is reviewing...')
+        await axios.post(`${API_BASE}/session/${currentSessionId}/reviews`)
+
+        setCurrentStep('Chairman Grok is deciding...')
+        addMessage('system', 'Chairman Grok is reviewing all responses...')
+
+        const synthesisRes = await axios.post(`${API_BASE}/session/${currentSessionId}/synthesize`)
+        const finalSession = synthesisRes.data.session
+        const finalRound = finalSession.rounds[finalSession.rounds.length - 1]
+
+        addMessage('chairman', finalRound.final_synthesis, 'Grok 4.1 Fast (Chairman)')
       }
-
-      setCurrentStep('Council is reviewing...')
-      await axios.post(`${API_BASE}/session/${currentSessionId}/reviews`)
-
-      setCurrentStep('Chairman Grok is deciding...')
-      addMessage('system', 'Chairman Grok is reviewing all responses...')
-
-      const synthesisRes = await axios.post(`${API_BASE}/session/${currentSessionId}/synthesize`)
-      const finalSession = synthesisRes.data.session
-      const finalRound = finalSession.rounds[finalSession.rounds.length - 1]
-
-      addMessage('chairman', finalRound.final_synthesis, 'Grok 4.1 Fast (Chairman)')
 
       // Refresh sessions list
       await fetchSessions()
@@ -281,6 +382,21 @@ function useCouncil() {
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev)
+  }
+
+  const toggleModel = (modelId) => {
+    setSelectedModels((prev) => {
+      if (prev.includes(modelId)) {
+        // Don't allow deselecting if only one model left
+        if (prev.length <= 1) return prev
+        return prev.filter((id) => id !== modelId)
+      }
+      return [...prev, modelId]
+    })
+  }
+
+  const selectAllModels = () => {
+    setSelectedModels(availableModels.map((m) => m.id))
   }
 
   const exportSession = async () => {
@@ -345,10 +461,18 @@ function useCouncil() {
     sessionId,
     sessions,
     sidebarOpen,
+    mode,
+    setMode,
+    availableModels,
+    selectedModels,
+    toggleModel,
+    selectAllModels,
     startCouncil,
     startNewChat,
     loadSession,
     deleteSession,
+    renameSession,
+    togglePinSession,
     toggleSidebar,
     fetchSessions,
     shareSession,

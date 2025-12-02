@@ -1,6 +1,8 @@
 from .session import (
     ModelProvider,
     ModelInfo,
+    CouncilMode,
+    ChatMessage,
     QueryRequest,
     ContinueRequest,
     ModelResponse,
@@ -10,13 +12,18 @@ from .session import (
     SynthesisRequest,
     SessionResponse,
     SessionSummary,
+    SessionUpdateRequest,
     SessionListResponse,
     ShareResponse,
+    AvailableModel,
+    AvailableModelsResponse,
 )
 
 __all__ = [
     "ModelProvider",
     "ModelInfo",
+    "CouncilMode",
+    "ChatMessage",
     "QueryRequest",
     "ContinueRequest",
     "ModelResponse",
@@ -26,6 +33,9 @@ __all__ = [
     "SynthesisRequest",
     "SessionResponse",
     "SessionSummary",
+    "SessionUpdateRequest",
     "SessionListResponse",
     "ShareResponse",
+    "AvailableModel",
+    "AvailableModelsResponse",
 ]

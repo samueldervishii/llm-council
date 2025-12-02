@@ -44,6 +44,8 @@ function ChatMessages({
               content={msg.content}
               modelName={msg.modelName}
               disagreement={msg.disagreement}
+              replyTo={msg.replyTo}
+              responseTime={msg.responseTime}
             />
           )
         })}

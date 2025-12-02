@@ -14,7 +14,9 @@ from schemas import (
     ConversationRound,
     SessionListResponse,
     SessionSummary,
+    SessionUpdateRequest,
     ShareResponse,
+    CouncilMode,
 )
 from services import CouncilService
 from services.council import analyze_disagreement
@@ -49,8 +51,14 @@ async def list_sessions(
             question=s["question"],
             status=s["status"],
             round_count=s.get("round_count", 1),
-            created_at=created_at.isoformat() if created_at else None
+            created_at=created_at.isoformat() if created_at else None,
+            is_pinned=s.get("is_pinned", False)
         ))
+
+    # Sort: pinned sessions first, then by created_at (most recent)
+    summaries.sort(key=lambda x: (not x.is_pinned, x.created_at or ""), reverse=True)
+    summaries.sort(key=lambda x: not x.is_pinned)
+
     return SessionListResponse(sessions=summaries, count=len(summaries))
 
 
@@ -65,14 +73,19 @@ async def create_session(
     Starts a new council session with your question. This creates a session
     with a pending first round, ready for council deliberation.
 
-    **Next step**: Call `POST /session/{id}/run-all` to run the full council
-    process, or use individual endpoints for step-by-step control.
+    **Mode options:**
+    - `formal`: Traditional council with parallel responses, peer reviews, and synthesis
+    - `chat`: Group chat style where models respond sequentially and interact naturally
+
+    **Next step**: Call `POST /session/{id}/run-all` to run the full council process.
     """
     session_id = str(uuid.uuid4())
 
-    # Create first round
+    # Create first round with the specified mode and selected models
     first_round = ConversationRound(
         question=request.question,
+        mode=request.mode,
+        selected_models=request.selected_models,
         status="pending"
     )
 
@@ -84,9 +97,10 @@ async def create_session(
 
     await repo.create(session)
 
+    mode_msg = "group chat" if request.mode == CouncilMode.CHAT else "formal council"
     return SessionResponse(
         session=session,
-        message="Session created. Call /session/{id}/responses to get council responses."
+        message=f"Session created in {mode_msg} mode. Call /session/{{id}}/run-all to start."
     )
 
 
@@ -128,6 +142,42 @@ async def delete_session(
     return {"message": "Session deleted"}
 
 
+@router.patch("/{session_id}", response_model=SessionResponse)
+async def update_session(
+        session_id: str,
+        request: SessionUpdateRequest,
+        repo: SessionRepository = Depends(get_session_repository)
+):
+    """
+    Update Session
+
+    Updates session properties like title or pinned status.
+    Only provided fields will be updated.
+    """
+    session = await repo.get(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Update title if provided
+    if request.title is not None:
+        session.title = request.title
+
+    # Update pinned status if provided
+    if request.is_pinned is not None:
+        session.is_pinned = request.is_pinned
+        if request.is_pinned:
+            session.pinned_at = datetime.now(timezone.utc).isoformat()
+        else:
+            session.pinned_at = None
+
+    await repo.update(session)
+
+    return SessionResponse(
+        session=session,
+        message="Session updated"
+    )
+
+
 @router.post("/{session_id}/continue", response_model=SessionResponse)
 async def continue_session(
         session_id: str,
@@ -138,7 +188,7 @@ async def continue_session(
     Continue Session
 
     Adds a follow-up question to an existing session, creating a new round.
-    The previous round must be fully completed (synthesized) before continuing.
+    The previous round must be fully completed before continuing.
 
     This allows for multi-turn conversations where the council can build on
     previous context and answers.
@@ -150,24 +200,33 @@ async def continue_session(
     # Check if last round is complete
     if session.rounds:
         last_round = session.rounds[-1]
-        if last_round.status != "synthesized":
+        # Allow continuing if synthesized (formal) or chat_complete (chat mode)
+        if last_round.status not in ["synthesized", "chat_complete"]:
             raise HTTPException(
                 status_code=400,
                 detail="Previous round must be completed before continuing"
             )
 
-    # Add new round
+    # Inherit mode and selected models from the first round (keep session consistent)
+    first_round = session.rounds[0] if session.rounds else None
+    session_mode = first_round.mode if first_round else CouncilMode.FORMAL
+    session_models = first_round.selected_models if first_round else None
+
+    # Add new round with same mode and models as session
     new_round = ConversationRound(
         question=request.question,
+        mode=session_mode,
+        selected_models=session_models,
         status="pending"
     )
     session.rounds.append(new_round)
 
     await repo.update(session)
 
+    mode_msg = "group chat" if session_mode == CouncilMode.CHAT else "council responses"
     return SessionResponse(
         session=session,
-        message="New round added. Call /session/{id}/responses to get council responses."
+        message=f"New round added. Call /session/{{id}}/run-all to get {mode_msg}."
     )
 
 
@@ -339,15 +398,18 @@ async def run_full_council(
     """
     Run Full Council Process
 
-    Executes the complete council deliberation in one call:
+    Executes the complete council deliberation in one call.
 
-    1. **Collect Responses** - Query all council members
+    **In FORMAL mode:**
+    1. **Collect Responses** - Query all council members in parallel
     2. **Peer Reviews** - Each model evaluates the others
     3. **Synthesis** - Chairman produces the final answer
 
-    This is the recommended endpoint for most use cases. Use the individual
-    step endpoints (`/responses`, `/reviews`, `/synthesize`) only when you need
-    fine-grained control over the process.
+    **In CHAT mode:**
+    - Models respond sequentially, seeing and replying to each other
+    - Creates a natural group conversation (like WhatsApp)
+
+    This is the recommended endpoint for most use cases.
     """
     session = await repo.get(session_id)
     if session is None:
@@ -359,6 +421,23 @@ async def run_full_council(
     current_round = session.rounds[-1]
     previous_rounds = session.rounds[:-1] if len(session.rounds) > 1 else None
 
+    # Check if using chat mode
+    if current_round.mode == CouncilMode.CHAT:
+        # Chat mode: run group chat (1 turn = each model responds once, then user can continue)
+        if current_round.status == "pending":
+            chat_messages = await council_service.run_group_chat(
+                current_round, previous_rounds, num_turns=1
+            )
+            current_round.chat_messages = chat_messages
+            current_round.status = "chat_complete"
+            await repo.update(session)
+
+        return SessionResponse(
+            session=session,
+            message="Group chat complete!"
+        )
+
+    # Formal mode: traditional 3-step process
     # Step 1: Get responses
     if current_round.status == "pending":
         responses = await council_service.get_council_responses(current_round, previous_rounds)

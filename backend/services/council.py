@@ -1,12 +1,13 @@
 import asyncio
 import json
-from statistics import mean, stdev
+import time
+from statistics import mean, stdev, StatisticsError
 from typing import List, Optional, Dict
 
 from clients import OpenRouterClient
 from config import COUNCIL_MODELS, CHAIRMAN_MODEL
 from core.logging import logger
-from schemas import ModelResponse, PeerReview, ConversationRound
+from schemas import ModelResponse, PeerReview, ConversationRound, ChatMessage
 from .prompts import Prompts
 
 
@@ -73,7 +74,7 @@ def analyze_disagreement(
         # Calculate standard deviation
         try:
             std = stdev(ranks)
-        except:
+        except StatisticsError:
             std = 0.0
 
         # Normalize disagreement score (0-1)
@@ -103,6 +104,15 @@ class CouncilService:
     def __init__(self, client: OpenRouterClient):
         self.client = client
 
+    def _get_active_models(self, selected_models: Optional[List[str]] = None) -> List[dict]:
+        """Get the models to use based on selection. If None, returns all council models."""
+        if selected_models is None:
+            return COUNCIL_MODELS
+
+        # Filter models based on selection (including chairman if selected)
+        all_models = COUNCIL_MODELS + [CHAIRMAN_MODEL]
+        return [m for m in all_models if m["id"] in selected_models]
+
     async def get_council_responses(
             self,
             current_round: ConversationRound,
@@ -122,25 +132,32 @@ class CouncilService:
 
         async def query_model(model: dict) -> ModelResponse:
             try:
+                start_time = time.monotonic()
                 response = await self.client.chat(
                     model_id=model["id"],
                     prompt=prompt,
                     system_prompt=system_prompt
                 )
+                elapsed_ms = int((time.monotonic() - start_time) * 1000)
                 return ModelResponse(
                     model_id=model["id"],
                     model_name=model["name"],
-                    response=response
+                    response=response,
+                    error=None,
+                    response_time_ms=elapsed_ms
                 )
             except Exception as e:
                 return ModelResponse(
                     model_id=model["id"],
                     model_name=model["name"],
                     response="",
-                    error=str(e)
+                    error=str(e),
+                    response_time_ms=None
                 )
 
-        tasks = [query_model(model) for model in COUNCIL_MODELS]
+        # Use selected models or all council models
+        active_models = self._get_active_models(current_round.selected_models)
+        tasks = [query_model(model) for model in active_models]
         responses = await asyncio.gather(*tasks)
         return list(responses)
 
@@ -191,7 +208,9 @@ class CouncilService:
                     rankings=[{"error": str(e)}]
                 )
 
-        tasks = [get_review(model) for model in COUNCIL_MODELS]
+        # Use selected models or all council models for reviews
+        active_models = self._get_active_models(current_round.selected_models)
+        tasks = [get_review(model) for model in active_models]
         reviews = await asyncio.gather(*tasks)
         return list(reviews)
 
@@ -226,3 +245,92 @@ class CouncilService:
 
         logger.info(f"Synthesis complete, response length: {len(final_response)} chars")
         return final_response
+
+    async def run_group_chat(
+            self,
+            current_round: ConversationRound,
+            previous_rounds: Optional[List[ConversationRound]] = None,
+            num_turns: int = 1  # Default to 1 turn so user can participate
+    ) -> List[ChatMessage]:
+        """
+        Run a group chat style discussion where models respond sequentially
+        and can see/reply to each other's messages.
+
+        Args:
+            current_round: The current conversation round
+            previous_rounds: Previous rounds for context
+            num_turns: How many times each model should speak (default: 2)
+
+        Returns:
+            List of chat messages from all models
+        """
+        chat_messages: List[ChatMessage] = []
+
+        # Use selected models or all models (council + chairman) in chat mode
+        if current_round.selected_models:
+            all_chat_models = self._get_active_models(current_round.selected_models)
+        else:
+            all_chat_models = COUNCIL_MODELS + [CHAIRMAN_MODEL]
+
+        logger.info(f"Starting group chat with {len(all_chat_models)} models, {num_turns} turns each")
+
+        for turn in range(num_turns):
+            logger.info(f"=== Turn {turn + 1}/{num_turns} ===")
+
+            for model in all_chat_models:
+                other_models = [m["name"] for m in all_chat_models if m["id"] != model["id"]]
+
+                # Build system prompt
+                if not chat_messages:
+                    system_prompt = Prompts.get_chat_first_responder_prompt(model["name"])
+                else:
+                    system_prompt = Prompts.get_chat_system_prompt(model["name"], other_models)
+
+                # Build user prompt with chat history
+                user_prompt = Prompts.build_chat_prompt(
+                    question=current_round.question,
+                    chat_messages=chat_messages,
+                    previous_rounds=previous_rounds
+                )
+
+                try:
+                    logger.info(f"Querying {model['name']}...")
+                    start_time = time.monotonic()
+                    response = await self.client.chat(
+                        model_id=model["id"],
+                        prompt=user_prompt,
+                        system_prompt=system_prompt,
+                        temperature=0.8  # Slightly higher for more personality
+                    )
+                    elapsed_ms = int((time.monotonic() - start_time) * 1000)
+
+                    # Detect if replying to someone
+                    reply_to = None
+                    for other_name in other_models:
+                        if f"@{other_name}" in response or other_name in response[:50]:
+                            reply_to = other_name
+                            break
+
+                    message = ChatMessage(
+                        model_id=model["id"],
+                        model_name=model["name"],
+                        content=response,
+                        reply_to=reply_to,
+                        response_time_ms=elapsed_ms
+                    )
+                    chat_messages.append(message)
+                    logger.info(f"{model['name']}: {response[:100]}...")
+
+                except Exception as e:
+                    logger.error(f"Error from {model['name']}: {e}")
+                    message = ChatMessage(
+                        model_id=model["id"],
+                        model_name=model["name"],
+                        content=f"[Failed to respond: {str(e)}]",
+                        reply_to=None,
+                        response_time_ms=None
+                    )
+                    chat_messages.append(message)
+
+        logger.info(f"Group chat complete with {len(chat_messages)} messages")
+        return chat_messages
