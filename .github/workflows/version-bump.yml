@@ -53,8 +53,8 @@ jobs:
           # Update root version.json (source of truth)
           jq --arg v "$NEW_VERSION" '.version = $v' version.json > tmp.json && mv tmp.json version.json
 
-          # Update frontend/package.json (for npm consistency)
-          jq --arg v "$NEW_VERSION" '.version = $v' frontend/package.json > tmp.json && mv tmp.json frontend/package.json
+          # Update llm-council-frontend/package.json (for npm consistency)
+          jq --arg v "$NEW_VERSION" '.version = $v' llm-council-frontend/package.json > tmp.json && mv tmp.json llm-council-frontend/package.json
 
       - name: Commit and push changes
         run: |
@@ -63,7 +63,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git add version.json frontend/package.json
+          git add version.json llm-council-frontend/package.json
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git push
 
