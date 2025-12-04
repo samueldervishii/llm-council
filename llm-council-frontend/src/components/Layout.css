@@ -385,10 +385,16 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
   .app-layout .sidebar {
     position: fixed;
     left: 0;
     top: 0;
+    width: 85vw;
+    max-width: 320px;
     height: 100vh;
     z-index: 1000;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
@@ -400,5 +406,73 @@
 
   .main-content {
     margin-left: 0;
+    width: 100%;
+  }
+
+  /* Sidebar Content Mobile */
+  .app-layout .sidebar-header {
+    padding: 0.75rem;
+  }
+
+  .sidebar-toggle-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .sidebar-new-chat-btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .app-layout .sidebar-search {
+    margin: 0.75rem;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .app-layout .sidebar-search input {
+    font-size: 0.8rem;
+  }
+
+  .app-layout .sidebar-sessions {
+    padding: 0 0.5rem;
+  }
+
+  .app-layout .sidebar-session {
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .app-layout .session-question,
+  .app-layout .session-name {
+    font-size: 0.85rem;
+  }
+
+  .app-layout .session-meta {
+    font-size: 0.7rem;
+  }
+
+  .app-layout .session-date,
+  .app-layout .session-rounds {
+    font-size: 0.7rem;
+  }
+
+  .sidebar-footer {
+    padding: 0.75rem;
+  }
+
+  .sidebar-footer-btn {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  /* Collapsed Sidebar Mobile */
+  .sidebar-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sidebar-collapsed-content {
+    padding: 0.75rem 0;
+    gap: 0.4rem;
   }
 }

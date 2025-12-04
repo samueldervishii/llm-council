@@ -125,7 +125,7 @@ function TopBar({
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Export
+                <span className="button-text">Export</span>
               </button>
               {branchingEnabled && (
                 <button
@@ -146,7 +146,7 @@ function TopBar({
                     <circle cx="6" cy="18" r="3" />
                     <path d="M18 9a9 9 0 0 1-9 9" />
                   </svg>
-                  Branch
+                  <span className="button-text">Branch</span>
                 </button>
               )}
               <button className="top-bar-action" onClick={handleShare} title="Share session">
@@ -162,7 +162,7 @@ function TopBar({
                   <polyline points="16 6 12 2 8 6" />
                   <line x1="12" y1="2" x2="12" y2="15" />
                 </svg>
-                Share
+                <span className="button-text">Share</span>
               </button>
             </>
           )}
