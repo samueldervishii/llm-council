@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   AppLoader,
@@ -60,9 +60,34 @@ function App() {
   } = useCouncil()
 
   const { theme, toggleTheme } = useTheme()
-  const [userSettings, setUserSettings] = useState({ enabled_beta_features: [] })
+  const [userSettings, setUserSettings] = useState({ enabled_beta_features: [], branching_enabled: true, custom_prompts_enabled: true })
   const [errorModal, setErrorModal] = useState({ open: false, title: '', message: '' })
   const [isIncognitoOpen, setIsIncognitoOpen] = useState(false)
+  const [konamiActive, setKonamiActive] = useState(false)
+  const konamiBuffer = useRef([])
+
+  // Konami Code easter egg
+  const KONAMI_CODE = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']
+
+  const handleKonami = useCallback(() => {
+    setKonamiActive(true)
+    setSystemPrompt('Respond as a dramatic pirate captain. Use pirate slang, say "arrr" and "ye", reference treasure, the sea, and your ship. Be theatrical but still answer the question. Keep it fun!')
+    setTimeout(() => setKonamiActive(false), 30000) // Lasts 30 seconds
+  }, [setSystemPrompt])
+
+  useEffect(() => {
+    const handleKonamiKey = (e) => {
+      konamiBuffer.current.push(e.key)
+      konamiBuffer.current = konamiBuffer.current.slice(-10)
+      if (konamiBuffer.current.length === 10 &&
+          konamiBuffer.current.every((k, i) => k === KONAMI_CODE[i])) {
+        handleKonami()
+        konamiBuffer.current = []
+      }
+    }
+    window.addEventListener('keydown', handleKonamiKey)
+    return () => window.removeEventListener('keydown', handleKonamiKey)
+  }, [handleKonami])
 
   // Load user settings on mount and trigger auto-delete cleanup
   useEffect(() => {
@@ -77,8 +102,14 @@ function App() {
 
     const runAutoDeleteCleanup = async () => {
       try {
-        // Trigger cleanup silently - the backend checks if feature is enabled
+        // Only run cleanup once per day to avoid deleting recently-unpinned sessions
+        const lastCleanup = localStorage.getItem('lastAutoDeleteCleanup')
+        const oneDayMs = 24 * 60 * 60 * 1000
+        if (lastCleanup && Date.now() - parseInt(lastCleanup, 10) < oneDayMs) {
+          return
+        }
         await apiClient.post('/sessions/cleanup')
+        localStorage.setItem('lastAutoDeleteCleanup', Date.now().toString())
       } catch (error) {
         // Silently ignore cleanup errors - not critical for user experience
         console.debug('Auto-delete cleanup:', error.response?.data?.message || 'skipped')
@@ -206,7 +237,7 @@ function App() {
             onTogglePinSession={togglePinSession}
             onShareSession={shareSession}
             onBranchSession={handleBranchFromSidebar}
-            branchingEnabled={userSettings.enabled_beta_features?.includes('branching')}
+            branchingEnabled={userSettings.branching_enabled !== false}
             onClose={toggleSidebar}
             onNewChat={() => {
               handleNewChat()
@@ -228,7 +259,7 @@ function App() {
         onShare={shareSession}
         onExport={exportSession}
         onBranch={handleBranch}
-        branchingEnabled={userSettings.enabled_beta_features?.includes('branching')}
+        branchingEnabled={userSettings.branching_enabled !== false}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenIncognito={() => setIsIncognitoOpen(true)}
       />
@@ -247,7 +278,7 @@ function App() {
           onQuestionChange={setQuestion}
           onSubmit={startCouncil}
           loading={loading}
-          {...(userSettings.enabled_beta_features?.includes('custom_prompts') && {
+          {...(userSettings.custom_prompts_enabled !== false && {
             systemPrompt,
             onSystemPromptChange: setSystemPrompt,
           })}
@@ -261,7 +292,7 @@ function App() {
           onQuestionChange={setQuestion}
           onSubmit={startCouncil}
           mode={mode}
-          {...(userSettings.enabled_beta_features?.includes('custom_prompts') && {
+          {...(userSettings.custom_prompts_enabled !== false && {
             systemPrompt,
             onSystemPromptChange: setSystemPrompt,
           })}
@@ -319,6 +350,13 @@ function App() {
       />
 
       <PWAInstallPrompt />
+
+      {konamiActive && (
+        <div className="konami-toast">
+          <span className="konami-icon">&#x1F3F4;&#x200D;&#x2620;&#xFE0F;</span>
+          Pirate Mode Activated! Arrr!
+        </div>
+      )}
     </div>
   )
 }

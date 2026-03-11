@@ -23,6 +23,16 @@ class UserSettings(BaseModel):
         default=[], description="List of beta feature IDs that the user has opted into"
     )
 
+    # Feature toggles (graduated from beta)
+    branching_enabled: bool = Field(
+        default=True,
+        description="Enable conversation branching feature",
+    )
+    custom_prompts_enabled: bool = Field(
+        default=True,
+        description="Enable custom system prompts and model personas",
+    )
+
     # Model Personas - per-model custom personality/instructions
     model_personas: Dict[str, str] = Field(
         default={},
@@ -32,14 +42,9 @@ class UserSettings(BaseModel):
     @field_validator("enabled_beta_features")
     @classmethod
     def validate_beta_features(cls, v: List[str]) -> List[str]:
-        """Validate that all enabled features are valid beta features."""
+        """Strip graduated/invalid features instead of rejecting them."""
         available = get_available_beta_features()
-        invalid = [f for f in v if f not in available]
-        if invalid:
-            raise ValueError(
-                f"Invalid beta features: {invalid}. Available: {available}"
-            )
-        return v
+        return [f for f in v if f in available]
 
     @field_validator("model_personas")
     @classmethod
@@ -63,6 +68,12 @@ class UserSettingsUpdate(BaseModel):
     enabled_beta_features: Optional[List[str]] = Field(
         None, description="List of beta feature IDs to enable"
     )
+    branching_enabled: Optional[bool] = Field(
+        None, description="Enable conversation branching feature"
+    )
+    custom_prompts_enabled: Optional[bool] = Field(
+        None, description="Enable custom system prompts and model personas"
+    )
     model_personas: Optional[Dict[str, str]] = Field(
         None, description="Map of model_id -> persona text"
     )
@@ -70,16 +81,11 @@ class UserSettingsUpdate(BaseModel):
     @field_validator("enabled_beta_features")
     @classmethod
     def validate_beta_features(cls, v: Optional[List[str]]) -> Optional[List[str]]:
-        """Validate that all enabled features are valid beta features."""
+        """Strip graduated/invalid features instead of rejecting them."""
         if v is None:
             return v
         available = get_available_beta_features()
-        invalid = [f for f in v if f not in available]
-        if invalid:
-            raise ValueError(
-                f"Invalid beta features: {invalid}. Available: {available}"
-            )
-        return v
+        return [f for f in v if f in available]
 
     @field_validator("model_personas")
     @classmethod

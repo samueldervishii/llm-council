@@ -57,6 +57,7 @@ function Sidebar({
   const [editingFolderId, setEditingFolderId] = useState(null)
   const [editFolderName, setEditFolderName] = useState('')
   const [editFolderColor, setEditFolderColor] = useState(null)
+  const [visibleCount, setVisibleCount] = useState(10)
 
   // Preset folder colors
   const folderColors = [
@@ -83,6 +84,11 @@ function Sidebar({
   useEffect(() => {
     localStorage.setItem('llm-council-collapsed-folders', JSON.stringify(collapsedFolders))
   }, [collapsedFolders])
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setVisibleCount(10)
+  }, [searchQuery])
 
   // Filter sessions based on search query
   const filteredSessions = sessions.filter((session) => {
@@ -455,6 +461,45 @@ function Sidebar({
                 <Pin size={14} fill={session.is_pinned ? 'currentColor' : 'none'} />
                 {session.is_pinned ? 'Unpin' : 'Pin'}
               </button>
+              {branchingEnabled && (
+                <button
+                  onClick={(e) => {
+                    handleBranch(e, session.id)
+                    setOpenMenuId(null)
+                  }}
+                >
+                  <GitBranch size={14} />
+                  Branch
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  startEditing(e, session)
+                  setOpenMenuId(null)
+                }}
+              >
+                <Edit2 size={14} />
+                Rename
+              </button>
+              <button
+                onClick={(e) => {
+                  handleShare(e, session.id)
+                  setOpenMenuId(null)
+                }}
+              >
+                <Share2 size={14} />
+                Share
+              </button>
+              <button
+                className="danger"
+                onClick={(e) => {
+                  confirmDelete(e, session)
+                  setOpenMenuId(null)
+                }}
+              >
+                <X size={14} />
+                Delete
+              </button>
               <div className="menu-submenu">
                 <button className="submenu-trigger">
                   <Folder size={14} />
@@ -499,45 +544,6 @@ function Sidebar({
                   )}
                 </div>
               </div>
-              {branchingEnabled && (
-                <button
-                  onClick={(e) => {
-                    handleBranch(e, session.id)
-                    setOpenMenuId(null)
-                  }}
-                >
-                  <GitBranch size={14} />
-                  Branch
-                </button>
-              )}
-              <button
-                onClick={(e) => {
-                  startEditing(e, session)
-                  setOpenMenuId(null)
-                }}
-              >
-                <Edit2 size={14} />
-                Rename
-              </button>
-              <button
-                onClick={(e) => {
-                  handleShare(e, session.id)
-                  setOpenMenuId(null)
-                }}
-              >
-                <Share2 size={14} />
-                Share
-              </button>
-              <button
-                className="danger"
-                onClick={(e) => {
-                  confirmDelete(e, session)
-                  setOpenMenuId(null)
-                }}
-              >
-                <X size={14} />
-                Delete
-              </button>
             </div>
           )}
         </div>
@@ -794,7 +800,7 @@ function Sidebar({
               </>
             )}
 
-            {/* Recent Sessions (not in folders) */}
+            {/* Recent Sessions (not in folders) - paginated */}
             {recentSessions.length > 0 && (
               <>
                 {(pinnedSessions.length > 0 || folders.length > 0) && (
@@ -807,7 +813,15 @@ function Sidebar({
                     <span>Recent</span>
                   </div>
                 )}
-                {recentSessions.map((session) => renderSessionItem(session))}
+                {recentSessions.slice(0, visibleCount).map((session) => renderSessionItem(session))}
+                {recentSessions.length > visibleCount && (
+                  <button
+                    className="load-more-btn"
+                    onClick={() => setVisibleCount((prev) => prev + 10)}
+                  >
+                    Load more ({recentSessions.length - visibleCount} remaining)
+                  </button>
+                )}
               </>
             )}
           </>

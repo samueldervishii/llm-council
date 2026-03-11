@@ -8,6 +8,7 @@ import { ErrorBoundary, AppLoader } from './components'
 const App = lazy(() => import('./App.jsx'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
 const SharedSession = lazy(() => import('./pages/SharedSession.jsx'))
+const StatusPage = lazy(() => import('./pages/StatusPage.jsx'))
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="/" element={<App />} />
             <Route path="/sessions/:sessionId" element={<App />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/status" element={<StatusPage />} />
             <Route path="/shared/:shareToken" element={<SharedSession />} />
           </Routes>
         </Suspense>

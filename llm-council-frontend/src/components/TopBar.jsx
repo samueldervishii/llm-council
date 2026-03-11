@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { FRONTEND_URL, apiClient } from '../config/api'
 
 function TopBar({
@@ -14,6 +14,7 @@ function TopBar({
   branchingEnabled = false,
 }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const isRootPath = location.pathname === '/'
   const [shareModal, setShareModal] = useState({ open: false, url: '', loading: false })
   const [showToast, setShowToast] = useState(false)
@@ -71,11 +72,9 @@ function TopBar({
 
         <div className="top-bar-right">
           {isRootPath && (
-            <a
-              href="http://localhost:3001/status/llm-council"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
               className={`status-indicator ${apiStatus}`}
+              onClick={() => navigate('/status')}
               title={
                 apiStatus === 'healthy'
                   ? 'All systems operational'
@@ -92,7 +91,7 @@ function TopBar({
                     ? 'Issues'
                     : 'Checking'}
               </span>
-            </a>
+            </button>
           )}
 
           {isRootPath && (

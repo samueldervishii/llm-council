@@ -20,6 +20,8 @@ function Settings({
   const [settings, setSettings] = useState({
     auto_delete_days: null,
     enabled_beta_features: [],
+    branching_enabled: true,
+    custom_prompts_enabled: true,
   })
   const [availableBetaFeatures, setAvailableBetaFeatures] = useState([])
   const [settingsLoading, setSettingsLoading] = useState(true)
@@ -279,6 +281,40 @@ function Settings({
                 </button>
               </div>
             </div>
+
+            <h2>Features</h2>
+            <div className="settings-option">
+              <div className="settings-option-info">
+                <h3>Conversation Branching <span className="new-badge">New</span></h3>
+                <p>Create branches from any point in a conversation to explore different directions</p>
+              </div>
+              <div className="settings-option-control">
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.branching_enabled !== false}
+                    onChange={() => saveSettings({ branching_enabled: !settings.branching_enabled })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div className="settings-option">
+              <div className="settings-option-info">
+                <h3>Custom System Prompts <span className="new-badge">New</span></h3>
+                <p>Define custom instructions and model personas to control how council members respond</p>
+              </div>
+              <div className="settings-option-control">
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.custom_prompts_enabled !== false}
+                    onChange={() => saveSettings({ custom_prompts_enabled: !settings.custom_prompts_enabled })}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
           </div>
         )}
 
@@ -335,9 +371,9 @@ function Settings({
               </table>
             </div>
 
-            {settings.enabled_beta_features?.includes('custom_prompts') && (
+            {settings.custom_prompts_enabled !== false && (
               <>
-                <h2>Model Personas</h2>
+                <h2>Model Personas <span className="new-badge">New</span></h2>
                 <p className="section-description">
                   Give each model a unique personality or role. These instructions are added to each model's system prompt.
                 </p>
@@ -381,47 +417,30 @@ function Settings({
           <div className="settings-section">
             <h2>Data & Privacy</h2>
 
-            {(() => {
-              const autoDeleteFeature = availableBetaFeatures.find((f) => f.id === 'auto_delete')
-              const isAutoDeleteEnabled = settings.enabled_beta_features?.includes('auto_delete')
-              const isAutoDeleteAvailable = autoDeleteFeature?.status === 'available'
-
-              return (
-                <div className={`settings-option ${!isAutoDeleteEnabled ? 'disabled' : ''}`}>
-                  <div className="settings-option-info">
-                    <h3>
-                      Auto-delete Old Chats
-                      {!isAutoDeleteAvailable && (
-                        <span className="coming-soon-badge">Coming Soon</span>
-                      )}
-                      {isAutoDeleteAvailable && !isAutoDeleteEnabled && (
-                        <span className="beta-required-badge">Enable in Beta Features</span>
-                      )}
-                    </h3>
-                    <p>
-                      Automatically delete chat sessions after a certain period (pinned chats
-                      preserved)
-                    </p>
-                  </div>
-                  <div className="settings-option-control">
-                    <select
-                      value={settings.auto_delete_days || 'never'}
-                      className="settings-select"
-                      disabled={!isAutoDeleteEnabled}
-                      onChange={(e) => {
-                        const value = e.target.value === 'never' ? null : parseInt(e.target.value)
-                        saveSettings({ auto_delete_days: value })
-                      }}
-                    >
-                      <option value="never">Never</option>
-                      <option value="30">30 days</option>
-                      <option value="60">60 days</option>
-                      <option value="90">90 days</option>
-                    </select>
-                  </div>
-                </div>
-              )
-            })()}
+            <div className="settings-option">
+              <div className="settings-option-info">
+                <h3>Auto-delete Old Chats</h3>
+                <p>
+                  Automatically delete inactive chat sessions after a certain period. Pinned
+                  chats and recently-active sessions are always preserved.
+                </p>
+              </div>
+              <div className="settings-option-control">
+                <select
+                  value={settings.auto_delete_days || 'never'}
+                  className="settings-select"
+                  onChange={(e) => {
+                    const value = e.target.value === 'never' ? null : parseInt(e.target.value)
+                    saveSettings({ auto_delete_days: value })
+                  }}
+                >
+                  <option value="never">Never</option>
+                  <option value="30">30 days</option>
+                  <option value="60">60 days</option>
+                  <option value="90">90 days</option>
+                </select>
+              </div>
+            </div>
 
             <h2>Data Management</h2>
 

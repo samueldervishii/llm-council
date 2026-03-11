@@ -2371,6 +2371,27 @@ body {
   flex-shrink: 0;
 }
 
+/* Load More Button */
+.load-more-btn {
+  display: block;
+  width: calc(100% - 1rem);
+  margin: 0.5rem auto;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.load-more-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
 /* Shared Session View */
 .shared-view .chat-messages {
   padding-bottom: 80px;
@@ -3557,4 +3578,384 @@ body {
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* ========== Status Page ========== */
+
+.status-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.status-page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.status-page-version {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.status-page-back {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.status-page-back:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.status-page-banner {
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.status-page-banner h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.status-page-banner p {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.status-page-banner.operational {
+  background: rgba(47, 204, 102, 0.1);
+  border: 1px solid rgba(47, 204, 102, 0.3);
+  color: #2fcc66;
+}
+
+.status-page-banner.degraded {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.status-page-banner.down {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: #ff6b6b;
+}
+
+.status-page-banner.unknown {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.status-page-section {
+  margin-bottom: 2rem;
+}
+
+.status-page-section h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.status-page-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-page-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.status-page-check-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 150px;
+}
+
+.status-page-check-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.status-page-check-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+}
+
+.status-page-check-badge.operational {
+  background: rgba(47, 204, 102, 0.15);
+  color: #2fcc66;
+}
+
+.status-page-check-badge.degraded {
+  background: rgba(255, 193, 7, 0.15);
+  color: #ffc107;
+}
+
+.status-page-check-badge.down {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+
+.status-page-check-badge.unknown {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+}
+
+.status-page-check-detail {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  width: 100%;
+  padding-left: 1.75rem;
+}
+
+.status-page-icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.status-page-icon.operational {
+  color: #2fcc66;
+}
+
+.status-page-icon.degraded {
+  color: #ffc107;
+}
+
+.status-page-icon.down {
+  color: #ff6b6b;
+}
+
+.status-page-icon.unknown {
+  color: #888;
+}
+
+.status-page-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-page-provider-card {
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.status-page-provider-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-page-provider-name {
+  font-weight: 500;
+  flex: 1;
+}
+
+.status-page-provider-models {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-left: 1.25rem;
+}
+
+.status-page-model-tag {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+}
+
+.status-page-council {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.status-page-council-chairman,
+.status-page-council-members {
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.status-page-council-chairman {
+  background: var(--chairman-bg);
+  border-color: var(--chairman-border);
+}
+
+.status-page-council-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.status-page-council-model {
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
+.status-page-council-provider {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.status-page-council-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+}
+
+.status-page-council-member + .status-page-council-member {
+  border-top: 1px solid var(--border-color);
+}
+
+.status-page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.status-page-refresh {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.status-page-refresh:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.status-page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.status-page-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== Konami Code Easter Egg ========== */
+
+.konami-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 2px solid #e94560;
+  color: #fff;
+  padding: 1.5rem 2.5rem;
+  border-radius: 16px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  z-index: 10000;
+  animation: konamiAppear 0.5s ease-out, konamiFade 0.5s ease-in 3s forwards;
+  box-shadow: 0 0 40px rgba(233, 69, 96, 0.4), 0 0 80px rgba(233, 69, 96, 0.2);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.konami-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes konamiAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5) rotate(-10deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes konamiFade {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.9);
+  }
 }

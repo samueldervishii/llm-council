@@ -175,11 +175,22 @@ async def update_session(
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
+    # Pin-only update: use direct method to avoid version conflicts
+    # (pin toggling can race with council operations that also update the session)
+    if request.is_pinned is not None and request.title is None:
+        pinned_at = datetime.now(timezone.utc).isoformat() if request.is_pinned else None
+        success = await repo.update_pin(session_id, request.is_pinned, pinned_at)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update pin status")
+        session.is_pinned = request.is_pinned
+        session.pinned_at = pinned_at
+        return SessionResponse(session=session, message="Session updated")
+
     # Update title if provided (sanitize for security)
     if request.title is not None:
         session.title = sanitize_title(request.title, max_length=200)
 
-    # Update pinned status if provided
+    # Update pinned status if provided (combined with title update)
     if request.is_pinned is not None:
         session.is_pinned = request.is_pinned
         if request.is_pinned:
@@ -726,21 +737,13 @@ async def cleanup_old_sessions(
     - On application startup
 
     **Requirements:**
-    - User must have `auto_delete` beta feature enabled
     - User must have `auto_delete_days` configured (30, 60, or 90)
 
     Pinned sessions are always preserved.
+    Recently-active sessions (updated within the retention period) are also preserved.
     """
     # Get user settings
     user_settings = await settings_repo.get(user_id="default")
-
-    # Check if auto_delete beta feature is enabled
-    if "auto_delete" not in (user_settings.enabled_beta_features or []):
-        return {
-            "message": "Auto-delete feature is not enabled",
-            "deleted_count": 0,
-            "skipped": True,
-        }
 
     # Check if auto_delete_days is configured
     if user_settings.auto_delete_days is None:

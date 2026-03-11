@@ -232,6 +232,21 @@ class SessionRepository:
 
         return sessions
 
+    async def update_pin(
+        self, session_id: str, is_pinned: bool, pinned_at: Optional[str] = None
+    ) -> bool:
+        """Update the pinned status of a session (bypasses optimistic locking)."""
+        update_fields = {
+            "is_pinned": is_pinned,
+            "pinned_at": pinned_at,
+            "updated_at": datetime.now(timezone.utc),
+        }
+        result = await self.collection.update_one(
+            {"id": session_id, "is_deleted": {"$ne": True}},
+            {"$set": update_fields},
+        )
+        return result.modified_count > 0
+
     async def update_folder(self, session_id: str, folder_id: Optional[str]) -> bool:
         """Update the folder_id of a session."""
         result = await self.collection.update_one(
@@ -252,8 +267,12 @@ class SessionRepository:
         Soft delete sessions older than the specified number of days.
         Returns the count of deleted sessions.
 
+        Only deletes sessions where BOTH created_at AND updated_at are older
+        than the cutoff. This prevents recently-active sessions (e.g. just
+        unpinned, renamed, or interacted with) from being immediately deleted.
+
         Args:
-            days: Number of days. Sessions created before (now - days) will be deleted.
+            days: Number of days. Sessions inactive for longer will be deleted.
             include_pinned: If True, also delete pinned sessions. Default False (preserve pinned).
         """
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
@@ -262,6 +281,7 @@ class SessionRepository:
         query = {
             "is_deleted": {"$ne": True},
             "created_at": {"$lt": cutoff_date},
+            "updated_at": {"$lt": cutoff_date},
         }
 
         if not include_pinned:

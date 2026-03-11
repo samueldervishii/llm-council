@@ -102,8 +102,15 @@ function CommandPalette({ isOpen, onClose, sessions, onNewChat, onExport, curren
       },
     })
 
-    // Chat sessions
-    sessions.forEach((session) => {
+    // Chat sessions — when not searching, show only 3 most recent (max 1 day old)
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+    const sessionsToShow = query.trim()
+      ? sessions
+      : sessions
+          .filter((s) => s.created_at && new Date(s.created_at).getTime() > oneDayAgo)
+          .slice(0, 3)
+
+    sessionsToShow.forEach((session) => {
       const title = session.title || session.question || 'Untitled'
       items.push({
         type: 'session',
