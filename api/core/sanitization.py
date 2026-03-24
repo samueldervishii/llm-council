@@ -33,8 +33,16 @@ def sanitize_text(text: Optional[str], max_length: Optional[int] = None) -> str:
     # Convert to string if not already
     text = str(text)
 
-    # Remove HTML comments
-    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    # Truncate to a safe ceiling before ANY regex runs.
+    # Without this bound, patterns like <!--.*?--> are polynomial (O(n²)) on
+    # inputs that open <!-- but never close -->, allowing ReDoS.
+    _REGEX_SAFE_LIMIT = 100_000
+    if len(text) > _REGEX_SAFE_LIMIT:
+        text = text[:_REGEX_SAFE_LIMIT]
+
+    # Remove HTML comments — use a bounded quantifier instead of .*? to avoid
+    # backtracking on unclosed comment tags
+    text = re.sub(r"<!--[^-]{0,10000}(?:-(?!->)[^-]{0,10000})*-->", "", text)
 
     # Remove HTML/XML tags (including unclosed tags)
     # Limit tag matching to prevent ReDoS with unclosed tags

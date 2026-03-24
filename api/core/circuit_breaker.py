@@ -107,15 +107,17 @@ def with_circuit_breaker(
                 # We track failures manually via the breaker's state
                 try:
                     result = await func(*args, **kwargs)
-                    # Record success - reset fail counter
-                    if hasattr(breaker, "close"):
-                        breaker.close()  # This resets the breaker to closed state
+                    # Only transition to closed when recovering from half-open state.
+                    # Calling close() in normal (closed) state resets the fail counter
+                    # on every request, preventing failures from ever accumulating.
+                    if state_name == "half-open" and hasattr(breaker, "close"):
+                        breaker.close()
                     return result
                 except Exception:
                     # Record failure - this may trip the breaker
                     if hasattr(breaker, "_inc_counter"):
                         breaker._inc_counter()
-                    # Check if we should open the circuit
+                    # Open circuit if failure threshold reached
                     if breaker.fail_counter >= breaker.fail_max:
                         if hasattr(breaker, "open"):
                             breaker.open()

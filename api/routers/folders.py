@@ -98,12 +98,8 @@ async def delete_folder(
     if folder is None:
         raise HTTPException(status_code=404, detail="Folder not found")
 
-    # Remove folder_id from all sessions in this folder
-    # We need to update all sessions that have this folder_id
-    sessions = await session_repo.list_all(limit=1000)
-    for session in sessions:
-        if session.get("folder_id") == folder_id:
-            await session_repo.update_folder(session["id"], None)
+    # Remove folder_id from all sessions in this folder (single bulk operation)
+    await session_repo.clear_folder_from_sessions(folder_id)
 
     await folder_repo.delete(folder_id)
     return {"message": "Folder deleted successfully"}

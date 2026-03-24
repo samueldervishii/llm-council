@@ -836,10 +836,9 @@ async def stream_council(
 
             # Save session after streaming completes
             await repo.update(session)
-        except Exception as e:
-            logger.error(f"Stream error for session {session_id}: {e}")
-            import json
-            yield f"event: error\ndata: {json.dumps({'message': 'An error occurred during processing.'})}\n\n"
+        except Exception as exc:
+            logger.error(f"Stream error for session {session_id}: {exc}")
+            yield f"event: error\ndata: {{\"message\": \"An error occurred during processing.\"}}\n\n"
 
     return StreamingResponse(
         event_stream(),

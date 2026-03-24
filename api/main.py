@@ -40,20 +40,20 @@ async def run_auto_delete_cleanup(silent: bool = False):
         # Check if auto_delete beta feature is enabled
         if "auto_delete" not in (user_settings.enabled_beta_features or []):
             if not silent:
-                print("Auto-delete: Feature not enabled, skipping cleanup")
+                logger.info("Auto-delete: Feature not enabled, skipping cleanup")
             return 0
 
         # Check if auto_delete_days is configured
         if user_settings.auto_delete_days is None:
             if not silent:
-                print("Auto-delete: No retention period configured, skipping cleanup")
+                logger.info("Auto-delete: No retention period configured, skipping cleanup")
             return 0
 
         # Validate days value
         valid_days = [30, 60, 90]
         if user_settings.auto_delete_days not in valid_days:
             if not silent:
-                print(
+                logger.info(
                     f"Auto-delete: Invalid retention period {user_settings.auto_delete_days}, skipping"
                 )
             return 0
@@ -64,18 +64,18 @@ async def run_auto_delete_cleanup(silent: bool = False):
         )
 
         if deleted_count > 0:
-            print(
+            logger.info(
                 f"Auto-delete: Cleaned up {deleted_count} sessions older than {user_settings.auto_delete_days} days"
             )
         elif not silent:
-            print(
+            logger.info(
                 f"Auto-delete: No sessions older than {user_settings.auto_delete_days} days to clean up"
             )
 
         return deleted_count
 
     except Exception as e:
-        print(f"Auto-delete cleanup failed: {e}")
+        logger.info(f"Auto-delete cleanup failed: {e}")
         return 0
 
 
@@ -88,7 +88,7 @@ AUTO_DELETE_INTERVAL = 24 * 60 * 60
 
 async def auto_delete_background_task():
     """Background task that runs auto-delete cleanup periodically."""
-    print("Auto-delete: Background scheduler started (runs every 24 hours)")
+    logger.info("Auto-delete: Background scheduler started (runs every 24 hours)")
     while True:
         try:
             # Wait for the interval before running (cleanup already runs on startup)
@@ -96,10 +96,10 @@ async def auto_delete_background_task():
             # Run cleanup silently (only log if something was deleted)
             await run_auto_delete_cleanup(silent=True)
         except asyncio.CancelledError:
-            print("Auto-delete: Background scheduler stopped")
+            logger.info("Auto-delete: Background scheduler stopped")
             break
         except Exception as e:
-            print(f"Auto-delete: Background task error: {e}")
+            logger.info(f"Auto-delete: Background task error: {e}")
             # Continue running even if there's an error
             await asyncio.sleep(60)  # Wait a minute before retrying
 
@@ -108,28 +108,28 @@ async def auto_delete_background_task():
 async def lifespan(_app: FastAPI):
     """Application lifespan handler."""
     global _auto_delete_task
-    print("LLM Council API starting...")
-    print(f"Council members: {[m['name'] for m in COUNCIL_MODELS]}")
-    print(f"Chairman: {CHAIRMAN_MODEL['name']}")
+    logger.info("LLM Council API starting...")
+    logger.info(f"Council members: {[m['name'] for m in COUNCIL_MODELS]}")
+    logger.info(f"Chairman: {CHAIRMAN_MODEL['name']}")
 
     # Initialize Prometheus metrics
     init_metrics()
-    print("Metrics initialized")
+    logger.info("Metrics initialized")
 
     # Connect to MongoDB with timeout (mask credentials in log output)
     masked_url = re.sub(
         r"://([^:]+):([^@]+)@", r"://\1:****@", settings.mongodb_url
     )
-    print(f"Connecting to MongoDB at {masked_url}...")
+    logger.info(f"Connecting to MongoDB at {masked_url}...")
     try:
         db = await get_database()
         # Ping to verify connection with 10 second timeout
         await asyncio.wait_for(db.command("ping"), timeout=10.0)
-        print(f"MongoDB connected successfully (database: {settings.mongodb_database})")
+        logger.info(f"MongoDB connected successfully (database: {settings.mongodb_database})")
 
         # Create indexes for optimal query performance
         await ensure_indexes(db)
-        print("MongoDB indexes ensured")
+        logger.info("MongoDB indexes ensured")
 
         # Run auto-delete cleanup on startup
         await run_auto_delete_cleanup()
@@ -137,12 +137,12 @@ async def lifespan(_app: FastAPI):
         # Start background task for periodic auto-delete
         _auto_delete_task = asyncio.create_task(auto_delete_background_task())
     except asyncio.TimeoutError:
-        print("MongoDB ping timeout after 10 seconds - proceeding anyway")
+        logger.info("MongoDB ping timeout after 10 seconds - proceeding anyway")
     except Exception as e:
-        print(f"MongoDB connection failed: {type(e).__name__}")
+        logger.info(f"MongoDB connection failed: {type(e).__name__}")
 
     yield
-    print("LLM Council API shutting down...")
+    logger.info("LLM Council API shutting down...")
 
     # Cancel auto-delete background task
     if _auto_delete_task is not None:
@@ -154,11 +154,11 @@ async def lifespan(_app: FastAPI):
 
     # Close HTTP clients gracefully
     await close_llm_client()
-    print("LLM client closed")
+    logger.info("LLM client closed")
 
     # Close database connection
     await close_database()
-    print("MongoDB connection closed")
+    logger.info("MongoDB connection closed")
 
 
 # Read version from root version.json

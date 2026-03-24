@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from pymongo import UpdateOne
 
 from schemas import Folder
 
@@ -59,14 +60,15 @@ class FolderRepository:
         return doc.get("position", 0) + 1
 
     async def reorder(self, folder_ids: List[str]) -> None:
-        """Reorder folders based on the provided list of IDs."""
-        for position, folder_id in enumerate(folder_ids):
-            await self.collection.update_one(
+        """Reorder folders based on the provided list of IDs (single bulk write)."""
+        if not folder_ids:
+            return
+        now = datetime.now(timezone.utc)
+        ops = [
+            UpdateOne(
                 {"id": folder_id},
-                {
-                    "$set": {
-                        "position": position,
-                        "updated_at": datetime.now(timezone.utc),
-                    }
-                },
+                {"$set": {"position": position, "updated_at": now}},
             )
+            for position, folder_id in enumerate(folder_ids)
+        ]
+        await self.collection.bulk_write(ops, ordered=False)

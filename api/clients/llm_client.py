@@ -41,6 +41,9 @@ class LLMClient:
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create the reusable HTTP client with connection pooling."""
         if self._client is None or self._client.is_closed:
+            # Close the old client before replacing it to free its connections
+            if self._client is not None:
+                await self._client.aclose()
             self._client = httpx.AsyncClient(
                 timeout=DEFAULT_TIMEOUT,
                 limits=httpx.Limits(

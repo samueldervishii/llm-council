@@ -361,8 +361,8 @@ class CouncilService:
             current_round.selected_models, include_chairman=False
         )
 
-        # Queue for interleaving token events from parallel models
-        queue: asyncio.Queue = asyncio.Queue()
+        # Queue for interleaving token events from parallel models (bounded to prevent memory growth)
+        queue: asyncio.Queue = asyncio.Queue(maxsize=100)
         SENTINEL = object()
 
         async def stream_model_to_queue(model: dict):
@@ -389,11 +389,12 @@ class CouncilService:
                     "response_time_ms": elapsed_ms,
                 }))
             except Exception as e:
-                await queue.put(("error", model_id, model_name, str(e)))
+                logger.error(f"Model stream error [{model_name}]: {e}")
+                await queue.put(("error", model_id, model_name, "Model failed to respond."))
 
         tasks = [asyncio.create_task(stream_model_to_queue(m)) for m in active_models]
 
-        # Also push a sentinel when all tasks are done
+        # Push a sentinel when all tasks are done
         async def push_sentinel():
             await asyncio.gather(*tasks, return_exceptions=True)
             await queue.put(SENTINEL)
@@ -401,50 +402,62 @@ class CouncilService:
         sentinel_task = asyncio.create_task(push_sentinel())
 
         responses = []
-        while True:
-            item = await queue.get()
-            if item is SENTINEL:
-                break
-            event_type, model_id, model_name, payload = item
+        try:
+            while True:
+                item = await queue.get()
+                if item is SENTINEL:
+                    break
+                event_type, model_id, model_name, payload = item
 
-            if event_type == "start":
-                yield _sse_event("response_start", {
-                    "model_id": model_id,
-                    "model_name": model_name,
-                })
-            elif event_type == "token":
-                yield _sse_event("response_token", {
-                    "model_id": model_id,
-                    "token": payload,
-                })
-            elif event_type == "end":
-                responses.append(ModelResponse(
-                    model_id=model_id,
-                    model_name=model_name,
-                    response=payload["response"],
-                    error=None,
-                    response_time_ms=payload["response_time_ms"],
-                ))
-                yield _sse_event("response_end", {
-                    "model_id": model_id,
-                    "model_name": model_name,
-                    "response_time_ms": payload["response_time_ms"],
-                })
-            elif event_type == "error":
-                responses.append(ModelResponse(
-                    model_id=model_id,
-                    model_name=model_name,
-                    response="",
-                    error=payload,
-                    response_time_ms=None,
-                ))
-                yield _sse_event("error_response", {
-                    "model_id": model_id,
-                    "model_name": model_name,
-                    "error": payload,
-                })
-
-        await sentinel_task
+                if event_type == "start":
+                    yield _sse_event("response_start", {
+                        "model_id": model_id,
+                        "model_name": model_name,
+                    })
+                elif event_type == "token":
+                    yield _sse_event("response_token", {
+                        "model_id": model_id,
+                        "token": payload,
+                    })
+                elif event_type == "end":
+                    responses.append(ModelResponse(
+                        model_id=model_id,
+                        model_name=model_name,
+                        response=payload["response"],
+                        error=None,
+                        response_time_ms=payload["response_time_ms"],
+                    ))
+                    yield _sse_event("response_end", {
+                        "model_id": model_id,
+                        "model_name": model_name,
+                        "response_time_ms": payload["response_time_ms"],
+                    })
+                elif event_type == "error":
+                    responses.append(ModelResponse(
+                        model_id=model_id,
+                        model_name=model_name,
+                        response="",
+                        error=payload,
+                        response_time_ms=None,
+                    ))
+                    yield _sse_event("error_response", {
+                        "model_id": model_id,
+                        "model_name": model_name,
+                        "error": payload,
+                    })
+        finally:
+            # Cancel all pending tasks on client disconnect or early exit
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            if not sentinel_task.done():
+                sentinel_task.cancel()
+            # Drain the queue to unblock any tasks stuck on put()
+            while not queue.empty():
+                try:
+                    queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    break
 
         current_round.responses = responses
         current_round.status = "responses_complete"
@@ -567,8 +580,8 @@ class CouncilService:
             })
 
         except Exception as e:
-            logger.error(f"Error from {model['name']}: {e}")
-            error_content = f"[Failed to respond: {str(e)}]"
+            logger.error(f"Chat stream error [{model['name']}]: {e}")
+            error_content = "[Failed to respond. Please try again.]"
             msg = ChatMessage(
                 model_id=model["id"],
                 model_name=model["name"],
@@ -675,7 +688,7 @@ class CouncilService:
                 logger.error(f"ELI5 error at {level_label}: {e}")
                 yield _sse_event(
                     "error_response",
-                    {"model_name": model_name, "error": str(e)},
+                    {"model_name": model_name, "error": "Failed to generate response."},
                 )
 
         current_round.status = "synthesized"
@@ -719,6 +732,11 @@ class CouncilService:
                 else:
                     current_round.chat_messages = chat_messages
                 current_round.status = "chat_complete"
+                yield _sse_event("done", {})
+                return
+            else:
+                logger.warning(f"Target model '{target_model}' not found in active models")
+                yield _sse_event("error", {"message": f"Model '{target_model}' is not available."})
                 yield _sse_event("done", {})
                 return
 
@@ -795,11 +813,11 @@ class CouncilService:
                 response_time_ms=elapsed_ms,
             )
         except Exception as e:
-            logger.error(f"Error from {model['name']}: {e}")
+            logger.error(f"Chat error [{model['name']}]: {e}")
             return ChatMessage(
                 model_id=model["id"],
                 model_name=model["name"],
-                content=f"[Failed to respond: {str(e)}]",
+                content="[Failed to respond. Please try again.]",
                 reply_to=None,
                 response_time_ms=None,
             )
