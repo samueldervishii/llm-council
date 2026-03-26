@@ -1,15 +1,7 @@
 import { useState, memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
-
-// Color palette for different models
-const MODEL_COLORS = {
-  'Claude Sonnet 4.6': '#d97706',
-  'Claude Haiku 4.5': '#8b5cf6',
-  'GPT OSS 120B': '#0467df',
-  'Qwen 3 32B': '#10b981',
-  'GPT OSS 20B': '#ef4444',
-}
+import { MODEL_COLORS } from '../utils/modelColors'
 
 // Mention names → color (includes short aliases models actually use)
 const MENTION_COLORS = {

@@ -2,8 +2,15 @@ import { useRef, useState, useEffect } from 'react'
 import ChatInput from './ChatInput'
 import SuggestionCards from './SuggestionCards'
 
-function WelcomeScreen({ question, onQuestionChange, onSubmit, loading }) {
-  const inputRef = useRef(null)
+interface WelcomeScreenProps {
+  question: string
+  onQuestionChange: (value: string) => void
+  onSubmit: () => void
+  loading: boolean
+}
+
+function WelcomeScreen({ question, onQuestionChange, onSubmit, loading }: WelcomeScreenProps) {
+  const inputRef = useRef<{ focus: () => void } | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(true)
 
   useEffect(() => {
@@ -18,7 +25,7 @@ function WelcomeScreen({ question, onQuestionChange, onSubmit, loading }) {
     }
   }, [question])
 
-  const handleSuggestionClick = (prompt) => {
+  const handleSuggestionClick = (prompt: string) => {
     onQuestionChange(prompt)
     // Focus the input after selecting a suggestion
     setTimeout(() => {

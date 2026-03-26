@@ -412,8 +412,6 @@ function Sidebar({
       onClick={(e) => {
         if (editingId === session.id) {
           e.preventDefault()
-        } else {
-          onClose()
         }
       }}
     >
@@ -557,9 +555,6 @@ function Sidebar({
         <h2>
           Chat History <span className="session-count">({sessions.length})</span>
         </h2>
-        <button className="sidebar-close" onClick={onClose}>
-          <X size={20} />
-        </button>
       </div>
 
       <button className="sidebar-new-chat" onClick={onNewChat}>
@@ -831,7 +826,6 @@ function Sidebar({
       <Link
         to="/settings"
         className={`sidebar-settings ${location.pathname === '/settings' ? 'active' : ''}`}
-        onClick={onClose}
       >
         <SettingsIcon size={16} />
         Settings

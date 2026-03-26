@@ -1,4 +1,8 @@
-function LoadingIndicator({ statusText }) {
+interface LoadingIndicatorProps {
+  statusText: string
+}
+
+function LoadingIndicator({ statusText }: LoadingIndicatorProps) {
   return (
     <div className="message system loading">
       <div className="typing-indicator">

@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FRONTEND_URL, apiClient } from '../config/api'
 
+// Persists across component remounts so page navigation doesn't flash "checking"
+let lastKnownStatus = 'checking'
+
 function TopBar({
   onNewChat,
   onToggleSidebar,
@@ -18,10 +21,16 @@ function TopBar({
   const location = useLocation()
   const navigate = useNavigate()
   const isRootPath = location.pathname === '/'
-  const showGlobalActions = isRootPath || location.pathname.startsWith('/settings') || location.pathname.startsWith('/status')
+  const showGlobalActions =
+    isRootPath ||
+    location.pathname.startsWith('/settings') ||
+    location.pathname.startsWith('/status')
   const [shareModal, setShareModal] = useState({ open: false, url: '', loading: false })
   const [showToast, setShowToast] = useState(false)
-  const [apiStatus, setApiStatus] = useState('checking') // 'healthy', 'unhealthy', 'checking'
+  // Cache health status in a module-level variable so it persists across
+  // page navigations (component remounts). Only show 'checking' on first load.
+  const [apiStatus, setApiStatus] = useState(() => lastKnownStatus)
+  const [displayStatus, setDisplayStatus] = useState(() => lastKnownStatus)
 
   // Check API health status periodically
   useEffect(() => {
@@ -29,15 +38,24 @@ function TopBar({
       try {
         await apiClient.get('/health')
         setApiStatus('healthy')
+        lastKnownStatus = 'healthy'
       } catch {
         setApiStatus('unhealthy')
+        lastKnownStatus = 'unhealthy'
       }
     }
 
     checkHealth()
-    const interval = setInterval(checkHealth, 30000) // Check every 30 seconds
+    const interval = setInterval(checkHealth, 30000)
     return () => clearInterval(interval)
   }, [])
+
+  // Delay status transitions so each state is visible for at least 2 seconds
+  useEffect(() => {
+    const delay = apiStatus === 'healthy' ? 2000 : 0
+    const timer = setTimeout(() => setDisplayStatus(apiStatus), delay)
+    return () => clearTimeout(timer)
+  }, [apiStatus])
 
   const handleShare = async () => {
     if (!sessionId || !onShare) return
@@ -73,29 +91,18 @@ function TopBar({
           </button>
         </div>
 
+        <div className="top-bar-center" onClick={() => navigate('/status')}>
+          <span className={`banner-dot ${displayStatus}`}></span>
+          <span className="banner-text">
+            {displayStatus === 'checking'
+              ? 'Preparing server instance'
+              : displayStatus === 'unhealthy'
+                ? 'Server is experiencing issues'
+                : 'All systems operational'}
+          </span>
+        </div>
+
         <div className="top-bar-right">
-          {showGlobalActions && (
-            <button
-              className={`status-indicator ${apiStatus}`}
-              onClick={() => navigate('/status')}
-              title={
-                apiStatus === 'healthy'
-                  ? 'All systems operational'
-                  : apiStatus === 'unhealthy'
-                    ? 'System issues detected'
-                    : 'Checking status...'
-              }
-            >
-              <span className="status-dot"></span>
-              <span className="status-text">
-                {apiStatus === 'healthy'
-                  ? 'Operational'
-                  : apiStatus === 'unhealthy'
-                    ? 'Issues'
-                    : 'Checking'}
-              </span>
-            </button>
-          )}
 
           {isRootPath && (
             <button

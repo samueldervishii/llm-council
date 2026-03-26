@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
-  AppLoader,
   TopBar,
   WelcomeScreen,
   ChatMessages,
@@ -74,10 +73,13 @@ function App() {
   // Konami Code easter egg
   const KONAMI_CODE = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a']
 
+  const konamiTimerRef = useRef(null)
   const handleKonami = useCallback(() => {
     setKonamiActive(true)
     setSystemPrompt('Respond as a dramatic pirate captain. Use pirate slang, say "arrr" and "ye", reference treasure, the sea, and your ship. Be theatrical but still answer the question. Keep it fun!')
-    setTimeout(() => setKonamiActive(false), 30000) // Lasts 30 seconds
+    // Clear any existing timer before setting a new one
+    if (konamiTimerRef.current) clearTimeout(konamiTimerRef.current)
+    konamiTimerRef.current = setTimeout(() => setKonamiActive(false), 30000)
   }, [setSystemPrompt])
 
   useEffect(() => {
@@ -91,7 +93,11 @@ function App() {
       }
     }
     window.addEventListener('keydown', handleKonamiKey)
-    return () => window.removeEventListener('keydown', handleKonamiKey)
+    return () => {
+      window.removeEventListener('keydown', handleKonamiKey)
+      // Clean up konami timer on unmount to prevent state update on unmounted component
+      if (konamiTimerRef.current) clearTimeout(konamiTimerRef.current)
+    }
   }, [handleKonami])
 
   // Load user settings on mount and trigger auto-delete cleanup
@@ -226,37 +232,11 @@ function App() {
   }, [handleNewChat, toggleSidebar])
 
   if (appLoading) {
-    return <AppLoader />
+    return null
   }
 
   return (
     <div className="chat-app">
-      {sidebarOpen && (
-        <>
-          <div className="sidebar-overlay" onClick={toggleSidebar} />
-          <Sidebar
-            sessions={sessions}
-            currentSessionId={sessionId}
-            onDeleteSession={deleteSession}
-            onRenameSession={renameSession}
-            onTogglePinSession={togglePinSession}
-            onShareSession={shareSession}
-            onBranchSession={handleBranchFromSidebar}
-            branchingEnabled={userSettings.branching_enabled !== false}
-            onClose={toggleSidebar}
-            onNewChat={() => {
-              handleNewChat()
-              toggleSidebar()
-            }}
-            folders={folders}
-            onCreateFolder={createFolder}
-            onUpdateFolder={updateFolder}
-            onDeleteFolder={deleteFolder}
-            onMoveSessionToFolder={moveSessionToFolder}
-          />
-        </>
-      )}
-
       <TopBar
         onNewChat={handleNewChat}
         onToggleSidebar={toggleSidebar}
@@ -274,33 +254,60 @@ function App() {
         }
       />
 
-      {isLoadingSession ? (
-        <ChatSkeleton />
-      ) : sessionLoadError ? (
-        <div className="session-load-error">
-          <h2>Something went wrong</h2>
-          <p>{sessionLoadError}</p>
-          <button onClick={handleNewChat}>Go to Home</button>
+      <div className="chat-body">
+        {sidebarOpen && (
+          <>
+            <div className="sidebar-overlay" onClick={toggleSidebar} />
+            <Sidebar
+              sessions={sessions}
+              currentSessionId={sessionId}
+              onDeleteSession={deleteSession}
+              onRenameSession={renameSession}
+              onTogglePinSession={togglePinSession}
+              onShareSession={shareSession}
+              onBranchSession={handleBranchFromSidebar}
+              branchingEnabled={userSettings.branching_enabled !== false}
+              onClose={toggleSidebar}
+              onNewChat={handleNewChat}
+              folders={folders}
+              onCreateFolder={createFolder}
+              onUpdateFolder={updateFolder}
+              onDeleteFolder={deleteFolder}
+              onMoveSessionToFolder={moveSessionToFolder}
+            />
+          </>
+        )}
+
+        <div className="chat-content">
+          {isLoadingSession ? (
+            <ChatSkeleton />
+          ) : sessionLoadError ? (
+            <div className="session-load-error">
+              <h2>Something went wrong</h2>
+              <p>{sessionLoadError}</p>
+              <button onClick={handleNewChat}>Go to Home</button>
+            </div>
+          ) : !hasMessages ? (
+            <WelcomeScreen
+              question={question}
+              onQuestionChange={setQuestion}
+              onSubmit={startCouncil}
+              loading={loading}
+            />
+          ) : (
+            <ChatMessages
+              messages={messages}
+              loading={loading}
+              currentStep={currentStep}
+              question={question}
+              onQuestionChange={setQuestion}
+              onSubmit={startCouncil}
+              mode={mode}
+              blindVoteEnabled={userSettings.enabled_beta_features?.includes('blind_vote') ?? false}
+            />
+          )}
         </div>
-      ) : !hasMessages ? (
-        <WelcomeScreen
-          question={question}
-          onQuestionChange={setQuestion}
-          onSubmit={startCouncil}
-          loading={loading}
-        />
-      ) : (
-        <ChatMessages
-          messages={messages}
-          loading={loading}
-          currentStep={currentStep}
-          question={question}
-          onQuestionChange={setQuestion}
-          onSubmit={startCouncil}
-          mode={mode}
-          blindVoteEnabled={userSettings.enabled_beta_features?.includes('blind_vote') ?? false}
-        />
-      )}
+      </div>
 
       <CommandPalette
         isOpen={isCommandPaletteOpen}

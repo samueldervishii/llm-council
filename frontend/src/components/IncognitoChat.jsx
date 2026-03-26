@@ -22,14 +22,7 @@ const GhostIcon = () => (
   </svg>
 )
 
-// Color palette for different models
-const MODEL_COLORS = {
-  'Claude Sonnet 4.6': '#d97706',
-  'Claude Haiku 4.5': '#8b5cf6',
-  'GPT OSS 120B': '#0467df',
-  'Qwen 3 32B': '#10b981',
-  'GPT OSS 20B': '#ef4444',
-}
+import { MODEL_COLORS } from '../utils/modelColors'
 
 function getModelColor(modelName) {
   return MODEL_COLORS[modelName] || '#b8864a'

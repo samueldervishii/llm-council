@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 
+type Theme = 'dark' | 'light'
+
 function useTheme() {
-  const [theme, setTheme] = useState(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     // Check localStorage first
     const saved = localStorage.getItem('llm-council-theme')
-    if (saved) return saved
+    if (saved === 'dark' || saved === 'light') return saved
     // Check system preference
     if (window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light'

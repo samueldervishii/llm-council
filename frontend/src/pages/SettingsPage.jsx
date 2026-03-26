@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AppLoader, TopBar, Sidebar, CommandPalette } from '../components'
+import { TopBar, Sidebar, CommandPalette } from '../components'
 import Settings from './Settings'
 import useCouncil from '../hooks/useCouncil'
 import useTheme from '../hooks/useTheme'
@@ -47,31 +47,11 @@ function SettingsPage() {
   }, [])
 
   if (appLoading) {
-    return <AppLoader />
+    return null
   }
 
   return (
     <div className="chat-app">
-      {sidebarOpen && (
-        <>
-          <div className="sidebar-overlay" onClick={toggleSidebar} />
-          <Sidebar
-            sessions={sessions}
-            currentSessionId={sessionId}
-            onDeleteSession={deleteSession}
-            onRenameSession={renameSession}
-            onTogglePinSession={togglePinSession}
-            onShareSession={shareSession}
-            onClose={toggleSidebar}
-            onNewChat={() => {
-              startNewChat()
-              toggleSidebar()
-              navigate('/')
-            }}
-          />
-        </>
-      )}
-
       <TopBar
         onNewChat={() => {
           startNewChat()
@@ -84,16 +64,39 @@ function SettingsPage() {
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
       />
 
-      <Settings
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        mode={mode}
-        onModeChange={setMode}
-        availableModels={availableModels}
-        selectedModels={selectedModels}
-        onToggleModel={toggleModel}
-        onSelectAllModels={selectAllModels}
-      />
+      <div className="chat-body">
+        {sidebarOpen && (
+          <>
+            <div className="sidebar-overlay" onClick={toggleSidebar} />
+            <Sidebar
+              sessions={sessions}
+              currentSessionId={sessionId}
+              onDeleteSession={deleteSession}
+              onRenameSession={renameSession}
+              onTogglePinSession={togglePinSession}
+              onShareSession={shareSession}
+              onClose={toggleSidebar}
+              onNewChat={() => {
+                startNewChat()
+                navigate('/')
+              }}
+            />
+          </>
+        )}
+
+        <div className="chat-content">
+          <Settings
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            mode={mode}
+            onModeChange={setMode}
+            availableModels={availableModels}
+            selectedModels={selectedModels}
+            onToggleModel={toggleModel}
+            onSelectAllModels={selectAllModels}
+          />
+        </div>
+      </div>
 
       <CommandPalette
         isOpen={isCommandPaletteOpen}

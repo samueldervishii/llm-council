@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiClient, API_BASE, API_KEY } from '../config/api'
 import { roundToMessages } from '../utils'
 
@@ -47,7 +47,9 @@ function useCouncil() {
   const [appLoading, setAppLoading] = useState(true)
   const [sessionId, setSessionId] = useState(null)
   const [sessions, setSessions] = useState([])
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return localStorage.getItem('llm-council-sidebar') === 'open'
+  })
   const [sessionLoadError, setSessionLoadError] = useState(null)
   const [isLoadingSession, setIsLoadingSession] = useState(false)
   const [mode, setMode] = useState(() => {
@@ -66,6 +68,10 @@ function useCouncil() {
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
     return localStorage.getItem('llm-council-language') || ''
   })
+
+  // AbortController ref — used to cancel in-flight SSE streams on unmount
+  // or when the user starts a new request before the previous one finishes.
+  const abortControllerRef = useRef(null)
 
   // Persist mode to localStorage when it changes
   useEffect(() => {
@@ -88,6 +94,20 @@ function useCouncil() {
   useEffect(() => {
     localStorage.setItem('llm-council-language', selectedLanguage)
   }, [selectedLanguage])
+
+  // Persist sidebar open/closed state
+  useEffect(() => {
+    localStorage.setItem('llm-council-sidebar', sidebarOpen ? 'open' : 'closed')
+  }, [sidebarOpen])
+
+  // Cleanup: abort any in-flight stream when the component using this hook unmounts
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   // Fetch available models on mount
   const fetchModels = useCallback(async () => {
@@ -123,12 +143,9 @@ function useCouncil() {
     }
   }, [])
 
+  // Fetch models immediately on mount — hide the app loader once done
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAppLoading(false)
-      fetchModels()
-    }, 2000)
-    return () => clearTimeout(timer)
+    fetchModels().finally(() => setAppLoading(false))
   }, [fetchModels])
 
   const fetchSessions = useCallback(async () => {
@@ -242,7 +259,6 @@ function useCouncil() {
       }
 
       setMessages(loadedMessages)
-      setSidebarOpen(false)
       setSessionLoadError(null)
     } catch (error) {
       console.error('Error loading session:', error)
@@ -365,6 +381,14 @@ function useCouncil() {
    * Handles token-level streaming for real-time typing effect.
    */
   const streamCouncil = async (currentSessionId, targetModel = null) => {
+    // Cancel any in-flight stream before starting a new one.
+    // This prevents concurrent streams from interleaving tokens into the wrong messages.
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
     const headers = { 'Content-Type': 'application/json' }
     if (API_KEY) headers['X-API-Key'] = API_KEY
 
@@ -374,6 +398,7 @@ function useCouncil() {
       method: 'POST',
       headers,
       body,
+      signal: controller.signal,
     })
 
     if (!response.ok) {
@@ -621,6 +646,9 @@ function useCouncil() {
           break
       }
     }
+
+    // Stream finished normally — clear the ref so we don't abort a completed stream
+    abortControllerRef.current = null
   }
 
   const startCouncil = async () => {
@@ -663,9 +691,14 @@ function useCouncil() {
       }
 
       if (activeMode === 'chat') {
-        const mentionMatch = userQuestion.match(
-          /@(Claude Sonnet 4\.6|Claude Haiku 4\.5|GPT OSS 120B|GPT OSS 20B|Qwen 3 32B)/
+        // Build mention regex dynamically from available models instead of hardcoding names
+        const modelNames = availableModels.map((m) =>
+          m.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         )
+        const mentionRegex = modelNames.length > 0
+          ? new RegExp(`@(${modelNames.join('|')})`)
+          : null
+        const mentionMatch = mentionRegex ? userQuestion.match(mentionRegex) : null
         const targetModel = mentionMatch ? mentionMatch[1] : null
         setCurrentStep(
           targetModel ? `${targetModel} is typing...` : 'Models are typing...'
@@ -678,6 +711,9 @@ function useCouncil() {
 
       await fetchSessions()
     } catch (error) {
+      // Don't show error messages for intentionally aborted streams
+      // (e.g. user submitted a new question or navigated away)
+      if (error.name === 'AbortError') return
       console.error('Error:', error)
       addMessage('error', error.response?.data?.detail || error.message)
     } finally {

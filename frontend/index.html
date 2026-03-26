@@ -60,12 +60,9 @@
   </head>
   <body>
     <div id="root">
-      <!-- Initial loader - replaced when React mounts -->
-      <div class="initial-loader">
-        <h1>LLM Council</h1>
-        <div class="loader-spinner"></div>
-      </div>
+      <!-- Loader removed — React mounts fast enough that a blank flash is negligible.
+           If needed in the future, add a minimal spinner here (not the full splash). -->
     </div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

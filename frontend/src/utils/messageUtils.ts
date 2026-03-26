@@ -1,10 +1,29 @@
+import type { ConversationRound, CouncilSession, DisagreementAnalysis } from '../types'
+
+// UI message type — broader than the API types because it includes
+// frontend-only message types like 'voting' and 'system'.
+export interface DisplayMessage {
+  type: string
+  content?: string
+  modelName?: string
+  timestamp: Date
+  streaming?: boolean
+  responseTime?: number | null
+  replyTo?: string | null
+  level?: string
+  levelLabel?: string
+  disagreement?: DisagreementAnalysis | null
+  // Voting visualization data (only for type: 'voting')
+  peerReviews?: Record<string, unknown>[]
+  responses?: Record<string, unknown>[]
+  disagreementAnalysis?: DisagreementAnalysis[]
+}
+
 /**
- * Convert a council round to display messages
- * @param {Object} round - The conversation round from the API
- * @returns {Array} Array of message objects for display
+ * Convert a council round to display messages.
  */
-export function roundToMessages(round) {
-  const msgs = []
+export function roundToMessages(round: ConversationRound): DisplayMessage[] {
+  const msgs: DisplayMessage[] = []
 
   // User question
   msgs.push({
@@ -43,7 +62,6 @@ export function roundToMessages(round) {
 
   // Check if this is a chat mode round
   if (round.mode === 'chat' && round.chat_messages && round.chat_messages.length > 0) {
-    // Chat mode: display messages as a group chat
     for (const chatMsg of round.chat_messages) {
       msgs.push({
         type: 'chat',
@@ -59,7 +77,7 @@ export function roundToMessages(round) {
 
   // Formal mode: traditional council responses
   // Build disagreement lookup by model_id
-  const disagreementMap = {}
+  const disagreementMap: Record<string, DisagreementAnalysis> = {}
   if (round.disagreement_analysis) {
     for (const analysis of round.disagreement_analysis) {
       disagreementMap[analysis.model_id] = analysis
@@ -98,8 +116,8 @@ export function roundToMessages(round) {
     if (round.peer_reviews && round.peer_reviews.length > 0) {
       msgs.push({
         type: 'voting',
-        peerReviews: round.peer_reviews,
-        responses: round.responses,
+        peerReviews: round.peer_reviews as Record<string, unknown>[],
+        responses: round.responses as unknown as Record<string, unknown>[],
         disagreementAnalysis: round.disagreement_analysis,
         timestamp: new Date(),
       })
@@ -125,12 +143,10 @@ export function roundToMessages(round) {
 }
 
 /**
- * Load messages from a session's rounds
- * @param {Object} session - The session object from the API
- * @returns {Array} Array of all messages from all rounds
+ * Load messages from a session's rounds.
  */
-export function loadMessagesFromSession(session) {
-  const loadedMessages = []
+export function loadMessagesFromSession(session: CouncilSession): DisplayMessage[] {
+  const loadedMessages: DisplayMessage[] = []
   if (session.rounds && session.rounds.length > 0) {
     for (const round of session.rounds) {
       loadedMessages.push(...roundToMessages(round))

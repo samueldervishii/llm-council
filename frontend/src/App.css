@@ -7,9 +7,9 @@
   --bg-hover: #333;
   --border-color: #333;
   --border-hover: #444;
-  --text-primary: #e0e0e0;
-  --text-secondary: #888;
-  --text-muted: #666;
+  --text-primary: #f0f0f0;
+  --text-secondary: #b0b0b0;
+  --text-muted: #8a8a8a;
   --accent-color: #d4a574;
   --accent-hover: #e5b685;
   --heading-color: #c0c0ff;
@@ -103,13 +103,28 @@ body {
   width: 100%;
 }
 
+/* Sidebar + content sit in a row below the topbar */
+.chat-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Main content fills remaining space next to sidebar */
+.chat-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-hover);
+  background: var(--bg-tertiary);
   min-height: 60px;
   flex-shrink: 0;
 }
@@ -181,6 +196,69 @@ body {
   }
 }
 
+/* Server status banner — shown in top-bar center when server is spinning up or down */
+.top-bar-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.banner-text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--text-muted);
+}
+
+.top-bar-center:hover .banner-text {
+  color: var(--text-primary);
+  text-decoration-color: var(--text-secondary);
+}
+
+/* No box — just dot + text inline in the top bar center */
+
+/* Only the dot changes color, text stays neutral */
+.banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.banner-dot.checking {
+  background: #ffd93d;
+  animation: pulse 1.5s infinite;
+}
+
+.banner-dot.unhealthy {
+  background: #ff6b6b;
+  box-shadow: 0 0 6px rgba(255, 107, 107, 0.5);
+}
+
+.banner-dot.healthy {
+  background: #2fcc66;
+  box-shadow: 0 0 6px rgba(47, 204, 102, 0.5);
+}
+
+/* Animated ellipsis appended directly to the banner text */
+.banner-dot.checking ~ .banner-text::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
 .status-text {
   font-weight: 500;
 }
@@ -189,7 +267,7 @@ body {
   padding: 0.5rem 1rem;
   background: transparent;
   border: 1px solid var(--border-hover);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -209,7 +287,7 @@ body {
   padding: 0.5rem 0.75rem;
   background: transparent;
   border: 1px solid var(--border-hover);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -1490,7 +1568,7 @@ body {
   padding: 0.5rem 0.75rem;
   background: transparent;
   border: 1px solid var(--border-hover);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   border-radius: 8px;
   cursor: pointer;
   font-size: 1.2rem;
@@ -1516,21 +1594,38 @@ body {
   animation: fadeIn 0.2s ease;
 }
 
+/* On desktop, no overlay needed — sidebar pushes content */
+@media (min-width: 769px) {
+  .sidebar-overlay {
+    display: none;
+  }
+}
+
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 300px;
-  max-width: 85vw;
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  min-width: 300px;
+  height: 100%;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  z-index: 101;
   display: flex;
   flex-direction: column;
+  overflow: visible;
+  flex-shrink: 0;
   animation: slideIn 0.2s ease;
-  overflow: visible; /* Allow dropdowns to extend outside */
+}
+
+/* On mobile, sidebar overlays as before */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 101;
+    animation: slideIn 0.2s ease;
+  }
 }
 
 @keyframes slideIn {
