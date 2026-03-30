@@ -1,5 +1,7 @@
 import logging
+import time
 import uuid
+from collections import defaultdict
 
 from fastapi import APIRouter, HTTPException, Depends, status
 
@@ -11,7 +13,7 @@ from core.auth import (
     decode_token,
 )
 from core.dependencies import get_user_repository, get_current_user
-from core.rate_limit import check_rate_limit
+from core.rate_limit import check_rate_limit, check_registration_limit
 from db.user_repository import UserRepository
 from schemas.user import (
     UserCreate,
@@ -28,26 +30,57 @@ logger = logging.getLogger("cortex.auth")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# Account lockout: track failed login attempts per email
+_MAX_FAILED_ATTEMPTS = 5
+_LOCKOUT_DURATION = 900  # 15 minutes in seconds
+_failed_attempts: dict[str, list[float]] = defaultdict(list)
+
+
+def _check_lockout(email: str) -> None:
+    """Check if account is locked out due to too many failed attempts."""
+    now = time.time()
+    # Clean old attempts
+    _failed_attempts[email] = [t for t in _failed_attempts[email] if now - t < _LOCKOUT_DURATION]
+    if len(_failed_attempts[email]) >= _MAX_FAILED_ATTEMPTS:
+        remaining = int(_LOCKOUT_DURATION - (now - _failed_attempts[email][0]))
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Account temporarily locked due to too many failed attempts. Try again in {remaining // 60} minutes.",
+        )
+
+
+def _record_failed_attempt(email: str) -> None:
+    """Record a failed login attempt."""
+    _failed_attempts[email].append(time.time())
+
+
+def _clear_failed_attempts(email: str) -> None:
+    """Clear failed attempts after successful login."""
+    _failed_attempts.pop(email, None)
+
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(
     request: UserCreate,
     user_repo: UserRepository = Depends(get_user_repository),
     _rate_limit: None = Depends(check_rate_limit),
+    _reg_limit: None = Depends(check_registration_limit),
 ):
     """Register a new user account."""
     existing = await user_repo.get_by_email(request.email)
     if existing:
+        # Use generic error to prevent email enumeration
+        # (attacker can't determine if an email is registered)
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="An account with this email already exists",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Registration could not be completed. Please try again or use a different email.",
         )
 
     user_id = str(uuid.uuid4())
     hashed = hash_password(request.password)
     await user_repo.create(user_id, request.email, hashed)
 
-    logger.info(f"New user registered: {request.email}")
+    logger.info(f"New user registered: {user_id}")
 
     return TokenResponse(
         access_token=create_access_token(user_id),
@@ -62,6 +95,11 @@ async def login(
     _rate_limit: None = Depends(check_rate_limit),
 ):
     """Authenticate and receive access + refresh tokens."""
+    email_lower = request.email.lower()
+
+    # Check lockout before doing any work
+    _check_lockout(email_lower)
+
     user = await user_repo.get_by_email(request.email)
 
     # Always run bcrypt to prevent timing-based email enumeration
@@ -73,13 +111,15 @@ async def login(
         password_valid = False
 
     if not password_valid:
+        _record_failed_attempt(email_lower)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
 
+    _clear_failed_attempts(email_lower)
     user_id = user["id"]
-    logger.info(f"User logged in: {request.email}")
+    logger.info("User logged in successfully")
 
     return TokenResponse(
         access_token=create_access_token(user_id),
@@ -121,8 +161,8 @@ async def update_profile(
         existing = await user_repo.get_by_username(request.username)
         if existing and existing["id"] != current_user_id:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="This username is already taken",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username is not available",
             )
 
     user = await user_repo.update_profile(
@@ -161,7 +201,7 @@ async def change_password(
         )
 
     await user_repo.update_password(current_user_id, hash_password(request.new_password))
-    logger.info(f"User changed password: {user['email']}")
+    logger.info(f"User changed password: {current_user_id}")
     return {"message": "Password changed successfully"}
 
 
@@ -183,7 +223,7 @@ async def delete_account(
         )
 
     await user_repo.delete(current_user_id)
-    logger.info(f"User deleted account: {user['email']}")
+    logger.info(f"User deleted account: {current_user_id}")
     return {"message": "Account deleted successfully"}
 
 

@@ -40,6 +40,16 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# Validate critical secrets in production
+if settings.environment == "production":
+    if not settings.jwt_secret_key or len(settings.jwt_secret_key) < 32:
+        raise RuntimeError(
+            "CRITICAL: JWT_SECRET_KEY is missing or too short (min 32 chars) in production. "
+            "Generate one with: openssl rand -hex 32"
+        )
+    if not settings.anthropic_api_key:
+        raise RuntimeError("CRITICAL: ANTHROPIC_API_KEY is required in production.")
+
 # The single AI model used for all conversations
 CHAT_MODEL = {
     "id": "claude-sonnet-4-6",

@@ -21,8 +21,8 @@ ALLOWED_MIME_TYPES = {
 }
 
 
-def validate_file(filename: str, content_type: str, size: int) -> None:
-    """Validate file type and size. Raises ValueError on invalid files."""
+def validate_file(filename: str, content_type: str, size: int, content: bytes = b"") -> None:
+    """Validate file type, size, and content. Raises ValueError on invalid files."""
     import os
 
     ext = os.path.splitext(filename)[1].lower()
@@ -32,6 +32,21 @@ def validate_file(filename: str, content_type: str, size: int) -> None:
         )
     if size > MAX_FILE_SIZE:
         raise ValueError(f"File too large ({size / 1024 / 1024:.1f}MB). Maximum is 10MB.")
+
+    # Validate file content matches declared type (magic byte verification)
+    if content and ext in (".pdf", ".docx"):
+        _validate_magic_bytes(content, ext)
+
+
+def _validate_magic_bytes(content: bytes, ext: str) -> None:
+    """Verify file content matches its extension using magic bytes."""
+    if ext == ".pdf":
+        if not content[:5] == b"%PDF-":
+            raise ValueError("File content does not match PDF format")
+    elif ext == ".docx":
+        # DOCX is a ZIP archive starting with PK\x03\x04
+        if not content[:4] == b"PK\x03\x04":
+            raise ValueError("File content does not match DOCX format")
 
 
 def extract_text(filename: str, content: bytes) -> str:

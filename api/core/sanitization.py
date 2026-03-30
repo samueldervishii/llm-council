@@ -81,6 +81,38 @@ def sanitize_text(text: Optional[str], max_length: Optional[int] = None) -> str:
     return text
 
 
+def sanitize_filename(filename: Optional[str], max_length: int = 100) -> str:
+    """Sanitize a filename to prevent path traversal and injection.
+
+    Strips path components, removes dangerous characters, limits length.
+    """
+    import os
+
+    if not filename:
+        return "download"
+
+    # Strip any directory path components (prevent path traversal)
+    filename = os.path.basename(filename)
+
+    # Remove any characters that aren't alphanumeric, dot, hyphen, underscore, or space
+    filename = re.sub(r'[^\w.\- ]', '_', filename)
+
+    # Collapse multiple underscores/spaces
+    filename = re.sub(r'[_ ]{2,}', '_', filename)
+
+    # Prevent hidden files (starting with dot)
+    filename = filename.lstrip('.')
+
+    if not filename:
+        return "download"
+
+    if len(filename) > max_length:
+        name, ext = os.path.splitext(filename)
+        filename = name[:max_length - len(ext)] + ext
+
+    return filename
+
+
 def sanitize_title(title: Optional[str], max_length: int = 200) -> str:
     """
     Sanitize a title/heading field.

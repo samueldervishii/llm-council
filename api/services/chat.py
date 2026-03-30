@@ -118,8 +118,8 @@ class ChatService:
                 "response_time_ms": elapsed_ms,
             })
 
-        except Exception as e:
-            logger.error(f"Streaming error: {e}")
-            yield _sse_event("error", {"message": str(e)})
+        except Exception:
+            logger.exception("Streaming error")
+            yield _sse_event("error", {"message": "An error occurred while generating the response. Please try again."})
 
         yield _sse_event("done", {})

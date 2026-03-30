@@ -28,3 +28,4 @@ CLAUDE.md
 frontend/pnpm-lock.yaml
 .claude/settings.json
 .claude/settings.local.json
+api/tests/pentest.py

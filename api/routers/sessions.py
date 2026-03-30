@@ -15,8 +15,8 @@ from core.dependencies import (
     get_llm_client,
     get_current_user,
 )
-from core.rate_limit import check_rate_limit
-from core.sanitization import sanitize_title
+from core.rate_limit import check_rate_limit, user_usage
+from core.sanitization import sanitize_title, sanitize_text
 from db import SessionRepository, SettingsRepository
 from schemas import (
     QueryRequest,
@@ -106,12 +106,13 @@ async def create_session(
     """Create a new chat session with an initial message."""
     session_id = str(uuid.uuid4())
 
-    user_message = Message(role="user", content=request.question)
+    clean_question = sanitize_text(request.question, max_length=10000)
+    user_message = Message(role="user", content=clean_question)
 
     session = ChatSession(
         id=session_id,
         user_id=user_id,
-        title=sanitize_title(request.question, max_length=100),
+        title=sanitize_title(clean_question, max_length=100),
         messages=[user_message],
     )
 
@@ -197,7 +198,8 @@ async def continue_session(
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    user_message = Message(role="user", content=request.question)
+    clean_question = sanitize_text(request.question, max_length=10000)
+    user_message = Message(role="user", content=clean_question)
     session.messages.append(user_message)
     await repo.update(session)
 
@@ -229,15 +231,15 @@ async def upload_file_to_session(
     content = await file.read()
 
     try:
-        validate_file(file.filename, file.content_type, len(content))
+        validate_file(file.filename, file.content_type, len(content), content)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
     try:
         extracted_text = extract_text(file.filename, content)
-    except Exception as e:
-        logger.error(f"File extraction failed: {e}")
-        raise HTTPException(status_code=400, detail=f"Could not extract text from file: {e}")
+    except Exception:
+        logger.exception(f"File extraction failed for {file.filename}")
+        raise HTTPException(status_code=400, detail="Could not process this file. Please ensure it is a valid PDF, DOCX, or text file.")
 
     attachment = FileAttachment(
         filename=file.filename,
@@ -247,7 +249,8 @@ async def upload_file_to_session(
         data_base64=base64.b64encode(content).decode("ascii"),
     )
 
-    user_text = question.strip() if question.strip() else f"I've uploaded a file: {file.filename}. Please analyze it."
+    raw_text = question.strip() if question.strip() else f"I've uploaded a file: {file.filename}. Please analyze it."
+    user_text = sanitize_text(raw_text, max_length=10000)
     user_message = Message(role="user", content=user_text, file=attachment)
 
     # If replace_last is true, replace the last user message (used when creating session + uploading file)
@@ -277,6 +280,10 @@ async def stream_response(
     _rate_limit: None = Depends(check_rate_limit),
 ):
     """Stream AI response via Server-Sent Events."""
+    # Per-user usage limits: daily cap + cooldown between messages
+    user_usage.check(user_id)
+    user_usage.record(user_id)
+
     session = await repo.get(session_id, user_id=user_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -385,9 +392,9 @@ async def stream_response(
                 session.messages.append(assistant_msg)
                 await repo.update(session)
 
-        except Exception as exc:
-            logger.error(f"Stream error for session {session_id}: {exc}")
-            yield f'event: error\ndata: {{"message": "An error occurred."}}\n\n'
+        except Exception:
+            logger.exception(f"Stream error for session {session_id}")
+            yield 'event: error\ndata: {"message": "An internal error has occurred. Please try again."}\n\n'
 
     return StreamingResponse(
         event_stream(),
@@ -422,11 +429,13 @@ async def download_file(
     if not msg.file or not msg.file.data_base64:
         raise HTTPException(status_code=404, detail="No file attached to this message")
 
+    from core.sanitization import sanitize_filename
     file_bytes = base64.b64decode(msg.file.data_base64)
+    safe_filename = sanitize_filename(msg.file.filename)
     return Response(
         content=file_bytes,
         media_type=msg.file.content_type,
-        headers={"Content-Disposition": f'attachment; filename="{msg.file.filename}"'},
+        headers={"Content-Disposition": f'attachment; filename="{safe_filename}"'},
     )
 
 
@@ -497,7 +506,7 @@ async def share_session(
         raise HTTPException(status_code=404, detail="Session not found")
 
     if not session.is_shared or not session.share_token:
-        session.share_token = secrets.token_urlsafe(16)
+        session.share_token = secrets.token_urlsafe(32)
         session.is_shared = True
         session.shared_at = datetime.now(timezone.utc).isoformat()
         await repo.update(session)

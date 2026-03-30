@@ -35,7 +35,11 @@ class UserRepository:
 
     async def update_password(self, user_id: str, hashed_password: str) -> bool:
         result = await self.collection.update_one(
-            {"id": user_id}, {"$set": {"hashed_password": hashed_password}}
+            {"id": user_id},
+            {"$set": {
+                "hashed_password": hashed_password,
+                "password_changed_at": datetime.now(timezone.utc),
+            }},
         )
         return result.modified_count > 0
 

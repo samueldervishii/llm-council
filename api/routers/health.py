@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, Response, status
 from db import get_database
 from config import CHAT_MODEL, settings
 from core.circuit_breaker import get_circuit_breaker_status
-from core.dependencies import verify_api_key
+from core.dependencies import verify_api_key, get_current_user
 
 router = APIRouter(tags=["health"])
 
@@ -66,86 +66,53 @@ async def readiness_check(response: Response):
 
 
 @router.get("/status")
-async def status_check(response: Response):
+async def status_check(
+    response: Response,
+    _user: str = Depends(get_current_user),
+):
     """
-    Status Dashboard Endpoint
+    Status Dashboard Endpoint (authenticated)
 
-    Returns comprehensive system status for the frontend status page.
-    Combines health, readiness, model info, and configuration.
+    Returns system status for the frontend status page.
+    Requires authentication to prevent infrastructure reconnaissance.
     """
-    result = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "service": "cortex-api",
-        "environment": settings.environment,
-    }
-
-    # System checks
     checks = {}
     is_healthy = True
 
-    # API Server (always healthy if responding)
+    # API Server
     checks["api_server"] = {"status": "operational", "detail": "Responding to requests"}
 
-    # MongoDB
+    # MongoDB — only show status, not latency details
     try:
         db = await get_database()
-        start = datetime.now(timezone.utc)
         await asyncio.wait_for(db.command("ping"), timeout=2.0)
-        latency_ms = (datetime.now(timezone.utc) - start).total_seconds() * 1000
-        checks["mongodb"] = {
-            "status": "operational",
-            "detail": f"Connected ({latency_ms:.0f}ms latency)",
-        }
+        checks["mongodb"] = {"status": "operational", "detail": "Connected"}
     except asyncio.TimeoutError:
-        checks["mongodb"] = {"status": "degraded", "detail": "Connection timeout"}
+        checks["mongodb"] = {"status": "degraded", "detail": "Slow response"}
         is_healthy = False
     except Exception:
-        checks["mongodb"] = {"status": "down", "detail": "Connection failed"}
+        checks["mongodb"] = {"status": "down", "detail": "Unavailable"}
         is_healthy = False
 
-    # Circuit Breaker (Anthropic)
+    # AI Service — only show up/down, not internal circuit breaker details
     try:
         breaker = get_circuit_breaker_status("anthropic")
         state = breaker.get("state", "unknown")
         if state == "open":
-            checks["anthropic_circuit"] = {
-                "status": "degraded",
-                "detail": f"Circuit open — {breaker.get('fail_counter', '?')}/{breaker.get('fail_max', '?')} failures",
-            }
+            checks["ai_service"] = {"status": "degraded", "detail": "Temporarily unavailable"}
             is_healthy = False
-        elif state == "half-open":
-            checks["anthropic_circuit"] = {
-                "status": "degraded",
-                "detail": "Circuit half-open — testing recovery",
-            }
         else:
-            checks["anthropic_circuit"] = {
-                "status": "operational",
-                "detail": "Circuit closed — normal operation",
-            }
+            checks["ai_service"] = {"status": "operational", "detail": "Available"}
     except Exception:
-        checks["anthropic_circuit"] = {"status": "unknown", "detail": "Unable to check"}
+        checks["ai_service"] = {"status": "unknown", "detail": "Unable to check"}
 
-    # API Keys configured
-    providers = {}
-    providers["anthropic"] = {
-        "configured": bool(settings.anthropic_api_key),
-        "models": [CHAT_MODEL["name"]],
+    result = {
+        "overall_status": "operational" if is_healthy else "degraded",
+        "checks": checks,
+        # Minimal model info — no IDs, no provider details
+        "providers": {"anthropic": {"configured": True, "models": ["Claude Sonnet 4.6"]}},
+        "models": {"chat_model": {"name": "Claude Sonnet 4.6"}},
     }
-
-    # Models
-    models = {
-        "chat_model": {
-            "id": CHAT_MODEL["id"],
-            "name": CHAT_MODEL["name"],
-            "provider": CHAT_MODEL["provider"],
-        },
-    }
-
-    result["overall_status"] = "operational" if is_healthy else "degraded"
-    result["checks"] = checks
-    result["providers"] = providers
-    result["models"] = models
 
     if not is_healthy:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE

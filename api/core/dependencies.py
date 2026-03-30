@@ -65,9 +65,30 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
 ) -> str:
     """Extract and validate the current user from the JWT Bearer token.
+    Checks that token was issued after any password change.
     Returns the user_id string."""
+    from datetime import datetime, timezone
+
     payload = decode_token(credentials.credentials, expected_type="access")
-    return payload["sub"]
+    user_id = payload["sub"]
+
+    # Check if token was issued before a password change
+    token_iat = payload.get("iat")
+    if token_iat:
+        user_repo = await get_user_repository()
+        user = await user_repo.get_by_id(user_id)
+        if user and user.get("password_changed_at"):
+            pwd_changed = user["password_changed_at"]
+            if isinstance(pwd_changed, datetime):
+                token_issued = datetime.fromtimestamp(token_iat, tz=timezone.utc)
+                if token_issued < pwd_changed:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Token invalidated by password change. Please log in again.",
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
+
+    return user_id
 
 
 def get_llm_client() -> LLMClient:

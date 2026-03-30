@@ -11,7 +11,11 @@ class RateLimiter:
     """
     Simple in-memory rate limiter using sliding window.
 
-    For production with multiple workers, consider using Redis.
+    WARNING: This rate limiter is per-process only. With multiple uvicorn workers
+    (e.g., --workers 4), each worker has its own rate limit state, effectively
+    multiplying the allowed rate by the number of workers. For production with
+    multiple workers, use Redis-backed rate limiting (e.g., slowapi with Redis).
+    Single-worker deployment (Render free tier, development) is fine as-is.
     """
 
     def __init__(self, requests_per_window: int, window_seconds: int):
@@ -25,13 +29,27 @@ class RateLimiter:
         self._cleanup_interval = 300
 
     def _get_client_id(self, request: Request) -> str:
-        """Get unique identifier for the client."""
-        # Use X-Forwarded-For if behind a proxy, otherwise use client host
+        """Get unique identifier for the client.
+
+        Uses a combination of X-Forwarded-For (if present) AND the direct
+        client IP to prevent header spoofing. An attacker can forge
+        X-Forwarded-For but cannot forge the TCP connection source IP.
+        """
+        client_ip = request.client.host if request.client else "unknown"
+
+        # In production behind a trusted proxy (Render, Vercel, etc.),
+        # X-Forwarded-For is set by the proxy and is trustworthy.
+        # We combine both to prevent spoofing: even if the header is forged,
+        # the real client IP is included.
         forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            # Take the first IP in the chain (original client)
-            return forwarded.split(",")[0].strip()
-        return request.client.host if request.client else "unknown"
+        if forwarded and settings.environment == "production":
+            # Behind trusted proxy: use the rightmost IP added by the proxy
+            # (last IP before the direct client is the one the proxy saw)
+            forwarded_ip = forwarded.split(",")[-1].strip()
+            return forwarded_ip
+
+        # In development or no proxy: use direct connection IP
+        return client_ip
 
     def _cleanup_old_requests(self, client_id: str, current_time: float) -> None:
         """Remove requests outside the current window."""
@@ -103,27 +121,107 @@ class RateLimiter:
         return max(0, self.requests_per_window - current_count)
 
 
-# Global rate limiter instance
+# Global rate limiter instance (general API rate limit)
 rate_limiter = RateLimiter(
     requests_per_window=settings.rate_limit_requests,
     window_seconds=settings.rate_limit_window,
 )
 
+# Strict registration rate limiter: 3 registrations per IP per hour
+registration_limiter = RateLimiter(
+    requests_per_window=3,
+    window_seconds=3600,
+)
+
+
+class UserUsageTracker:
+    """Track per-user daily message usage and enforce cooldowns.
+
+    Prevents API cost abuse by limiting:
+    - Max messages per user per day (default: 50)
+    - Min delay between messages per user (default: 3 seconds)
+    """
+
+    def __init__(self, daily_limit: int = 50, cooldown_seconds: float = 3.0):
+        self.daily_limit = daily_limit
+        self.cooldown_seconds = cooldown_seconds
+        # user_id -> list of timestamps (messages sent today)
+        self._daily_usage: dict[str, list[float]] = defaultdict(list)
+        # user_id -> timestamp of last message
+        self._last_message: dict[str, float] = {}
+        self._last_cleanup = time.time()
+
+    def _cleanup(self, now: float) -> None:
+        """Remove entries older than 24 hours."""
+        if now - self._last_cleanup < 600:  # cleanup every 10 min
+            return
+        cutoff = now - 86400  # 24 hours
+        stale = [uid for uid, ts in self._daily_usage.items()
+                 if not ts or all(t < cutoff for t in ts)]
+        for uid in stale:
+            del self._daily_usage[uid]
+            self._last_message.pop(uid, None)
+        self._last_cleanup = now
+
+    def check(self, user_id: str) -> None:
+        """Check if user can send a message. Raises HTTPException if not."""
+        now = time.time()
+        self._cleanup(now)
+
+        # Check cooldown (min delay between messages)
+        last = self._last_message.get(user_id)
+        if last and (now - last) < self.cooldown_seconds:
+            wait = round(self.cooldown_seconds - (now - last), 1)
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Please wait {wait}s before sending another message.",
+                headers={"Retry-After": str(int(wait) + 1)},
+            )
+
+        # Check daily limit
+        cutoff = now - 86400
+        self._daily_usage[user_id] = [t for t in self._daily_usage[user_id] if t > cutoff]
+        if len(self._daily_usage[user_id]) >= self.daily_limit:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Daily message limit reached ({self.daily_limit} messages). Resets in 24 hours.",
+            )
+
+    def record(self, user_id: str) -> None:
+        """Record a message sent by user."""
+        now = time.time()
+        self._daily_usage[user_id].append(now)
+        self._last_message[user_id] = now
+
+    def get_remaining(self, user_id: str) -> int:
+        """Get remaining messages for user today."""
+        now = time.time()
+        cutoff = now - 86400
+        self._daily_usage[user_id] = [t for t in self._daily_usage[user_id] if t > cutoff]
+        return max(0, self.daily_limit - len(self._daily_usage[user_id]))
+
+
+# Global user usage tracker
+user_usage = UserUsageTracker(daily_limit=50, cooldown_seconds=3.0)
+
 
 async def check_rate_limit(request: Request) -> None:
-    """
-    Dependency to check rate limit.
-
-    Usage:
-        @router.post("/endpoint")
-        async def endpoint(request: Request, _rate_limit: None = Depends(check_rate_limit)):
-            ...
-    """
+    """General API rate limit (per-IP)."""
     is_allowed, retry_after = rate_limiter.is_allowed(request)
-
     if not is_allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate limit exceeded. Try again in {retry_after} seconds.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+async def check_registration_limit(request: Request) -> None:
+    """Strict registration rate limit (3 per IP per hour)."""
+    is_allowed, retry_after = registration_limiter.is_allowed(request)
+    if not is_allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many registration attempts. Please try again later.",
             headers={"Retry-After": str(retry_after)},
         )

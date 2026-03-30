@@ -140,26 +140,22 @@ class LLMClient:
         )
 
         if response.status_code != 200:
-            error_detail = response.text
             logger.error(
-                f"Anthropic error for {model_id}: {response.status_code} - {error_detail}"
+                f"Anthropic error for {model_id}: {response.status_code} - {response.text[:500]}"
             )
-            raise Exception(
-                f"Anthropic API error ({response.status_code}): {error_detail}"
-            )
+            raise Exception("The AI service is temporarily unavailable. Please try again.")
 
         data = response.json()
 
         if "error" in data:
-            error_msg = data["error"].get("message", str(data["error"]))
-            logger.error(f"Anthropic error for {model_id}: {error_msg}")
-            raise Exception(f"Model error: {error_msg}")
+            logger.error(f"Anthropic error for {model_id}: {data['error']}")
+            raise Exception("The AI service encountered an error. Please try again.")
 
         # Anthropic response format: content[0].text
         content_blocks = data.get("content", [])
         if not content_blocks:
-            logger.error(f"Invalid response from {model_id}: {data}")
-            raise Exception("Invalid response from model (no content returned)")
+            logger.error(f"Invalid response from {model_id}: empty content")
+            raise Exception("No response received from the AI. Please try again.")
 
         content = content_blocks[0].get("text", "")
         logger.info(f"Anthropic response from {model_id}: {len(content)} chars")
@@ -268,9 +264,8 @@ class LLMClient:
         ) as response:
             if response.status_code != 200:
                 body = await response.aread()
-                raise Exception(
-                    f"Anthropic API error ({response.status_code}): {body.decode()}"
-                )
+                logger.error(f"Anthropic stream error: {response.status_code} - {body.decode()[:500]}")
+                raise Exception("The AI service is temporarily unavailable. Please try again.")
 
             async for line in response.aiter_lines():
                 if not line.startswith("data: "):

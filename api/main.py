@@ -193,17 +193,11 @@ tags_metadata = [
 is_production = settings.environment == "production"
 
 app = FastAPI(
-    title="Cortex API",
-    description=DESCRIPTION,
-    version=VERSION,
+    title="Cortex API" if not is_production else "API",
+    description=DESCRIPTION if not is_production else "",
+    version=VERSION if not is_production else "",
     lifespan=lifespan,
-    openapi_tags=tags_metadata,
-    contact={
-        "name": "Cortex",
-    },
-    license_info={
-        "name": "MIT",
-    },
+    openapi_tags=tags_metadata if not is_production else [],
     docs_url=None if is_production else "/docs",
     redoc_url=None if is_production else "/redoc",
     openapi_url=None if is_production else "/openapi.json",
@@ -257,9 +251,20 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self'; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none'"
+    )
+    response.headers["Server"] = "Cortex"
     if settings.environment == "production":
         response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
+            "max-age=31536000; includeSubDomains; preload"
         )
     return response
 
@@ -321,7 +326,7 @@ async def root():
     Returns the current status and version of the API.
     Use this endpoint to verify the API is running.
     """
-    return {"message": "Cortex API", "status": "running", "version": VERSION}
+    return {"status": "ok"}
 
 
 

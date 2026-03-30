@@ -137,7 +137,10 @@ class SessionRepository:
 
     async def search(self, query: str, user_id: Optional[str] = None, limit: int = 20) -> List[dict]:
         """Search sessions by content (title, messages)."""
-        regex = {"$regex": query, "$options": "i"}
+        # Escape regex metacharacters to prevent ReDoS attacks
+        import re
+        escaped_query = re.escape(query)
+        regex = {"$regex": escaped_query, "$options": "i"}
         match_stage = {
             "is_deleted": {"$ne": True},
             "$or": [

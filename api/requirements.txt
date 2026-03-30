@@ -6,6 +6,11 @@ pydantic>=2.12.5
 pydantic-settings>=2.6.0
 motor>=3.6.0
 
+# File handling
+python-multipart>=0.0.20
+python-docx>=1.1.0
+PyPDF2>=3.0.0
+
 # Authentication
 bcrypt>=4.0.0
 python-jose[cryptography]>=3.4.0
@@ -13,6 +18,9 @@ email-validator>=2.0.0
 
 # Production: Circuit Breaker & Resilience
 pybreaker>=1.0.0
+
+# Testing
+requests>=2.31.0
 
 # Production: Monitoring & Observability
 prometheus-client>=0.20.0  # Metrics export
