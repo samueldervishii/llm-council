@@ -99,9 +99,9 @@ function StatusPage() {
                       {key === 'api_server'
                         ? 'API Server'
                         : key === 'mongodb'
-                          ? 'Database (MongoDB)'
-                          : key === 'anthropic_circuit'
-                            ? 'Anthropic Circuit Breaker'
+                          ? 'Database'
+                          : key === 'ai_service'
+                            ? 'AI Service'
                             : key}
                     </span>
                     <span className="status-page-check-detail">{check.detail}</span>
