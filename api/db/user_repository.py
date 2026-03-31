@@ -6,11 +6,14 @@ class UserRepository:
     def __init__(self, database):
         self.collection = database["users"]
 
-    async def create(self, user_id: str, email: str, hashed_password: str) -> dict:
+    async def create(self, user_id: str, email: str, hashed_password: str, avatar: str = "") -> dict:
         doc = {
             "id": user_id,
             "email": email.lower(),
             "hashed_password": hashed_password,
+            "avatar": avatar,
+            "field_of_work": "",
+            "personal_preferences": "",
             "created_at": datetime.now(timezone.utc),
         }
         await self.collection.insert_one(doc)
@@ -25,10 +28,30 @@ class UserRepository:
     async def get_by_username(self, username: str) -> Optional[dict]:
         return await self.collection.find_one({"username": username.lower()})
 
-    async def update_profile(self, user_id: str, display_name: str, username: str) -> Optional[dict]:
+    async def update_profile(
+        self,
+        user_id: str,
+        display_name: str,
+        username: str,
+        field_of_work: str = "",
+        personal_preferences: str = "",
+    ) -> Optional[dict]:
         result = await self.collection.find_one_and_update(
             {"id": user_id},
-            {"$set": {"display_name": display_name, "username": username.lower()}},
+            {"$set": {
+                "display_name": display_name,
+                "username": username.lower(),
+                "field_of_work": field_of_work,
+                "personal_preferences": personal_preferences,
+            }},
+            return_document=True,
+        )
+        return result
+
+    async def update_avatar(self, user_id: str, avatar: str) -> Optional[dict]:
+        result = await self.collection.find_one_and_update(
+            {"id": user_id},
+            {"$set": {"avatar": avatar}},
             return_document=True,
         )
         return result

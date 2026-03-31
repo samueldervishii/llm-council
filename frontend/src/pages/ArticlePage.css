@@ -1,0 +1,260 @@
+/* Article/Document pages (Personalization, Usage Policy, 404, etc.) */
+
+.article-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Hero — big centered title like Anthropic */
+.article-hero {
+  text-align: center;
+  padding: 3.5rem 1.5rem 2.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2.5rem;
+}
+
+.article-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.article-hero-date {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin: 0.75rem 0 0 0;
+}
+
+/* Breadcrumb */
+.article-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.article-breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.article-breadcrumb a:hover {
+  color: var(--text-primary);
+}
+
+/* Content container */
+.article-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.article-intro {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 2rem 0;
+}
+
+/* Table of contents */
+.article-toc {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.article-toc h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem 0;
+}
+
+.article-toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.article-toc li a {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  border-left: 2px solid var(--border-color);
+  padding-left: 0.75rem;
+  display: block;
+  transition: all 0.15s;
+}
+
+.article-toc li a:hover {
+  color: var(--accent-color);
+  border-left-color: var(--accent-color);
+}
+
+/* Sections */
+.article-container section {
+  margin-bottom: 2rem;
+}
+
+.article-container h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.01em;
+}
+
+.article-container p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 1rem 0;
+}
+
+.article-container ul {
+  padding-left: 1.25rem;
+  margin: 0 0 1rem 0;
+}
+
+.article-container li {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 0.5rem;
+}
+
+.article-container li strong {
+  color: var(--text-primary);
+}
+
+.article-container a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.article-container a:hover {
+  color: var(--accent-hover);
+}
+
+/* Footer */
+.article-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.article-footer p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── 404 Page ── */
+.not-found {
+  text-align: center;
+  padding: 6rem 1rem;
+}
+
+.not-found h1 {
+  font-size: 5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.not-found-message {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+}
+
+.not-found-hint {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 2rem 0;
+}
+
+.not-found-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.not-found-btn {
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.not-found-btn:hover {
+  background: var(--bg-hover);
+}
+
+.not-found-btn.primary {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+.not-found-btn.primary:hover {
+  opacity: 0.85;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .article-hero {
+    padding: 2.5rem 1rem 2rem;
+  }
+
+  .article-hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .article-container {
+    padding: 0 1rem 3rem;
+  }
+
+  .article-intro {
+    font-size: 0.95rem;
+  }
+
+  .article-container h2 {
+    font-size: 1.15rem;
+  }
+
+  .not-found {
+    padding: 4rem 1rem;
+  }
+
+  .not-found h1 {
+    font-size: 3.5rem;
+  }
+
+  .not-found-actions {
+    flex-direction: column;
+  }
+}

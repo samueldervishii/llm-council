@@ -1,26 +1,5 @@
-/* Theme Variables — loaded globally before any lazy component */
-:root,
-[data-theme='dark'] {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #252525;
-  --bg-tertiary: #2d2d2d;
-  --bg-hover: #333;
-  --border-color: #333;
-  --border-hover: #444;
-  --text-primary: #f0f0f0;
-  --text-secondary: #b0b0b0;
-  --text-muted: #8a8a8a;
-  --accent-color: #d4a574;
-  --accent-hover: #e5b685;
-  --heading-color: #c0c0ff;
-  --council-bg: #252525;
-  --chairman-bg: linear-gradient(135deg, #1e2a3a 0%, #1a2030 100%);
-  --chairman-border: #3a5a8a;
-  --error-bg: #2d1f1f;
-  --error-border: #5c3a3a;
-}
-
-[data-theme='light'] {
+/* Theme Variables — light only */
+:root {
   --bg-primary: #ffffff;
   --bg-secondary: #f9f9f9;
   --bg-tertiary: #e8e8e8;

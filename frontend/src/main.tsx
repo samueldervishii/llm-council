@@ -14,6 +14,9 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const SharedSession = lazy(() => import('./pages/SharedSession'))
 const StatusPage = lazy(() => import('./pages/StatusPage'))
 const AuthPage = lazy(() => import('./pages/AuthPage'))
+const PersonalizationPage = lazy(() => import('./pages/PersonalizationPage'))
+const UsagePolicyPage = lazy(() => import('./pages/UsagePolicyPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -27,6 +30,8 @@ createRoot(document.getElementById('root')!).render(
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/register" element={<AuthPage />} />
                 <Route path="/shared/:shareToken" element={<SharedSession />} />
+                <Route path="/personalization" element={<PersonalizationPage />} />
+                <Route path="/usage-policy" element={<UsagePolicyPage />} />
 
                 {/* Protected routes */}
                 <Route
@@ -41,6 +46,8 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/status" element={<StatusPage />} />
                 </Route>
+                {/* 404 */}
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
           </BrowserRouter>

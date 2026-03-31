@@ -18,6 +18,9 @@ class UserInDB(BaseModel):
     hashed_password: str
     display_name: str = ""
     username: str = ""
+    avatar: str = ""
+    field_of_work: str = ""
+    personal_preferences: str = ""
     created_at: datetime
 
 
@@ -26,12 +29,17 @@ class UserResponse(BaseModel):
     email: str
     display_name: str = ""
     username: str = ""
+    avatar: str = ""
+    field_of_work: str = ""
+    personal_preferences: str = ""
     created_at: str
 
 
 class ProfileUpdate(BaseModel):
     display_name: str = Field("", max_length=100)
     username: str = Field("", max_length=50, pattern=r"^[a-zA-Z0-9_]*$")
+    field_of_work: str = Field("", max_length=100)
+    personal_preferences: str = Field("", max_length=2000)
 
     def model_post_init(self, __context):
         if self.username and len(self.username) < 3:

@@ -11,7 +11,6 @@ import {
 } from './components'
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
 import useCouncil from './hooks/useCouncil'
-import useTheme from './hooks/useTheme'
 import './App.css'
 
 function App() {
@@ -41,7 +40,6 @@ function App() {
     isLoadingSession,
   } = useCouncil() as any
 
-  const { theme, toggleTheme } = useTheme() as any
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   useEffect(() => {

@@ -25,6 +25,7 @@ from schemas.user import (
     PasswordChange,
     DeleteAccount,
 )
+from services.avatar import generate_avatar
 
 logger = logging.getLogger("cortex.auth")
 
@@ -59,6 +60,20 @@ def _clear_failed_attempts(email: str) -> None:
     _failed_attempts.pop(email, None)
 
 
+def _build_user_response(user: dict) -> UserResponse:
+    """Build a UserResponse from a MongoDB user document."""
+    return UserResponse(
+        id=user["id"],
+        email=user["email"],
+        display_name=user.get("display_name", ""),
+        username=user.get("username", ""),
+        avatar=user.get("avatar", ""),
+        field_of_work=user.get("field_of_work", ""),
+        personal_preferences=user.get("personal_preferences", ""),
+        created_at=user["created_at"].isoformat() + "Z",
+    )
+
+
 @router.post("/register", response_model=TokenResponse, status_code=201)
 async def register(
     request: UserCreate,
@@ -70,7 +85,6 @@ async def register(
     existing = await user_repo.get_by_email(request.email)
     if existing:
         # Use generic error to prevent email enumeration
-        # (attacker can't determine if an email is registered)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Registration could not be completed. Please try again or use a different email.",
@@ -78,7 +92,8 @@ async def register(
 
     user_id = str(uuid.uuid4())
     hashed = hash_password(request.password)
-    await user_repo.create(user_id, request.email, hashed)
+    avatar = generate_avatar(request.email)
+    await user_repo.create(user_id, request.email, hashed, avatar=avatar)
 
     logger.info(f"New user registered: {user_id}")
 
@@ -140,13 +155,7 @@ async def get_me(
             detail="User not found",
         )
 
-    return UserResponse(
-        id=user["id"],
-        email=user["email"],
-        display_name=user.get("display_name", ""),
-        username=user.get("username", ""),
-        created_at=user["created_at"].isoformat() + "Z",
-    )
+    return _build_user_response(user)
 
 
 @router.patch("/profile", response_model=UserResponse)
@@ -155,7 +164,7 @@ async def update_profile(
     current_user_id: str = Depends(get_current_user),
     user_repo: UserRepository = Depends(get_user_repository),
 ):
-    """Update the current user's profile (display name, username)."""
+    """Update the current user's profile."""
     # Check username uniqueness if provided
     if request.username:
         existing = await user_repo.get_by_username(request.username)
@@ -166,7 +175,11 @@ async def update_profile(
             )
 
     user = await user_repo.update_profile(
-        current_user_id, request.display_name, request.username
+        current_user_id,
+        request.display_name,
+        request.username,
+        field_of_work=request.field_of_work,
+        personal_preferences=request.personal_preferences,
     )
     if not user:
         raise HTTPException(
@@ -174,13 +187,24 @@ async def update_profile(
             detail="User not found",
         )
 
-    return UserResponse(
-        id=user["id"],
-        email=user["email"],
-        display_name=user.get("display_name", ""),
-        username=user.get("username", ""),
-        created_at=user["created_at"].isoformat() + "Z",
-    )
+    return _build_user_response(user)
+
+
+@router.post("/avatar/regenerate", response_model=UserResponse)
+async def regenerate_avatar(
+    current_user_id: str = Depends(get_current_user),
+    user_repo: UserRepository = Depends(get_user_repository),
+):
+    """Generate a new random avatar for the current user."""
+    avatar = generate_avatar()  # Random seed
+    user = await user_repo.update_avatar(current_user_id, avatar)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    return _build_user_response(user)
 
 
 @router.post("/change-password")

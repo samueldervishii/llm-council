@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useToast } from '../contexts/ToastContext'
-import ProfileModal from './ProfileModal'
 import ModelSelector from './ModelSelector'
 
 interface TopBarProps {
@@ -13,9 +12,8 @@ interface TopBarProps {
 
 function TopBar({ onNewChat, onToggleSidebar, onOpenCommandPalette, sidebarOpen }: TopBarProps) {
   const { user, logout } = useAuth() as any
-  const { showToast } = useToast()
+  const navigate = useNavigate()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -88,7 +86,11 @@ function TopBar({ onNewChat, onToggleSidebar, onOpenCommandPalette, sidebarOpen 
               onClick={() => setUserMenuOpen((prev) => !prev)}
               title={user.email}
             >
-              {(user.display_name || user.username || user.email || '?')[0].toUpperCase()}
+              {user.avatar ? (
+                <img src={user.avatar} alt="" className="top-bar-avatar-img" />
+              ) : (
+                (user.display_name || user.username || user.email || '?')[0].toUpperCase()
+              )}
             </button>
             {userMenuOpen && (
               <div className="user-dropdown">
@@ -101,7 +103,7 @@ function TopBar({ onNewChat, onToggleSidebar, onOpenCommandPalette, sidebarOpen 
                   className="user-dropdown-item"
                   onClick={() => {
                     setUserMenuOpen(false)
-                    setProfileOpen(true)
+                    navigate('/settings?tab=general')
                   }}
                 >
                   <svg
@@ -147,12 +149,6 @@ function TopBar({ onNewChat, onToggleSidebar, onOpenCommandPalette, sidebarOpen 
           </div>
         )}
       </div>
-
-      <ProfileModal
-        isOpen={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        onToast={showToast}
-      />
     </div>
   )
 }

@@ -3,7 +3,6 @@ import { useNavigate, useOutletContext } from 'react-router-dom'
 import { TopBar, Sidebar, CommandPalette } from '../components'
 import Settings from './Settings'
 import useCouncil from '../hooks/useCouncil'
-import useTheme from '../hooks/useTheme'
 import '../App.css'
 
 function SettingsPage() {
@@ -20,8 +19,6 @@ function SettingsPage() {
     shareSession,
     exportSession,
   } = useCouncil() as any
-
-  const { theme, toggleTheme } = useTheme() as any
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -67,7 +64,7 @@ function SettingsPage() {
             onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
             sidebarOpen={sidebarOpen}
           />
-          <Settings theme={theme} onToggleTheme={toggleTheme} />
+          <Settings />
         </div>
       </div>
 

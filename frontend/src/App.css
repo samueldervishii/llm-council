@@ -106,6 +106,13 @@
   opacity: 0.85;
 }
 
+.top-bar-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 /* Model Selector */
 .model-selector {
   position: relative;
@@ -1912,13 +1919,13 @@ button.message-file-badge:hover {
   max-width: 100%;
 }
 
-.chat-content p {
+.chat-messages p {
   margin: 0;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
-.chat-content p + p {
+.chat-messages p + p {
   margin-top: 0.5rem;
 }
 
@@ -2361,10 +2368,6 @@ button.message-file-badge:hover {
 .sidebar-logo-icon {
   width: 40px;
   height: 40px;
-}
-
-[data-theme='dark'] .sidebar-logo-icon {
-  filter: invert(1);
 }
 
 .sidebar-toggle-btn {
@@ -4823,245 +4826,6 @@ button.message-file-badge:hover {
   gap: 0.35rem;
 }
 
-/* Profile Modal */
-.profile-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  animation: profileOverlayIn 0.15s ease;
-}
-
-@keyframes profileOverlayIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.profile-modal {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 1rem;
-  width: 90%;
-  max-width: 420px;
-  padding: 1.75rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  animation: profileModalIn 0.2s ease;
-}
-
-@keyframes profileModalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.profile-modal-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0 0 1.25rem;
-  color: var(--text-primary);
-}
-
-.profile-avatar-section {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.25rem;
-}
-
-.profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #8e8e8e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-avatar-initials {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.05em;
-}
-
-.profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.profile-field {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  transition: border-color 0.2s;
-}
-
-.profile-field:focus-within {
-  border-color: var(--text-primary);
-}
-
-.profile-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  margin-bottom: 0.15rem;
-}
-
-.profile-input {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  padding: 0;
-  width: 100%;
-  font-family: inherit;
-}
-
-.profile-error {
-  color: #e74c3c;
-  font-size: 0.8rem;
-  margin: 0;
-}
-
-.profile-hint {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-align: center;
-  margin: 0.25rem 0 0;
-}
-
-.profile-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.profile-btn {
-  padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.profile-btn.cancel {
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.profile-btn.cancel:hover {
-  background: var(--bg-hover);
-}
-
-.profile-btn.save {
-  background: var(--text-primary);
-  border: 1px solid var(--text-primary);
-  color: var(--bg-primary);
-}
-
-.profile-btn.save:hover {
-  opacity: 0.85;
-}
-
-.profile-btn.save:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.profile-btn.delete {
-  background: #e74c3c;
-  border: 1px solid #e74c3c;
-  color: #fff;
-}
-
-.profile-btn.delete:hover {
-  background: #c0392b;
-}
-
-.profile-btn.delete:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.profile-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 0.5rem 0;
-}
-
-.profile-link-btn {
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0.35rem 0;
-  text-align: left;
-  font-family: inherit;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.profile-link-btn:hover {
-  opacity: 1;
-}
-
-.profile-link-btn.danger {
-  color: #e74c3c;
-}
-
-.profile-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.profile-section-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.profile-section-title.danger {
-  color: #e74c3c;
-}
-
-.profile-danger-text {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.profile-field.danger {
-  border-color: rgba(231, 76, 60, 0.3);
-}
-
-.profile-field.danger:focus-within {
-  border-color: #e74c3c;
-}
-
 /* Keyboard Shortcuts Modal */
 .shortcuts-modal-overlay {
   position: fixed;
@@ -5071,7 +4835,12 @@ button.message-file-badge:hover {
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  animation: profileOverlayIn 0.15s ease;
+  animation: shortcutsOverlayIn 0.15s ease;
+}
+
+@keyframes shortcutsOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .shortcuts-modal {
@@ -5082,7 +4851,12 @@ button.message-file-badge:hover {
   max-width: 420px;
   padding: 1.5rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  animation: profileModalIn 0.2s ease;
+  animation: shortcutsModalIn 0.2s ease;
+}
+
+@keyframes shortcutsModalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .shortcuts-modal-header {
@@ -5167,8 +4941,8 @@ button.message-file-badge:hover {
 /* Toast Notifications */
 .toast-container {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  top: 1.25rem;
+  right: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -5230,11 +5004,28 @@ button.message-file-badge:hover {
   flex: 1;
 }
 
+.toast-close {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
 @media (max-width: 600px) {
   .toast-container {
-    bottom: 1rem;
+    top: 1rem;
     right: 1rem;
-    left: 1rem;
+    left: auto;
   }
 
   .toast {

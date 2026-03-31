@@ -6,6 +6,16 @@ interface User {
   email: string
   display_name: string
   username: string
+  avatar: string
+  field_of_work: string
+  personal_preferences: string
+}
+
+interface ProfileData {
+  display_name: string
+  username: string
+  field_of_work?: string
+  personal_preferences?: string
 }
 
 interface AuthContextType {
@@ -15,7 +25,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string) => Promise<void>
   logout: () => void
-  updateProfile: (displayName: string, username: string) => Promise<void>
+  updateProfile: (data: ProfileData) => Promise<void>
+  regenerateAvatar: () => Promise<string>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   deleteAccount: (password: string) => Promise<void>
 }
@@ -24,6 +35,18 @@ const AuthContext = createContext<AuthContextType | null>(null)
 
 const TOKEN_KEY = 'cortex-access-token'
 const REFRESH_KEY = 'cortex-refresh-token'
+
+function userFromResponse(data: any): User {
+  return {
+    id: data.id,
+    email: data.email,
+    display_name: data.display_name || '',
+    username: data.username || '',
+    avatar: data.avatar || '',
+    field_of_work: data.field_of_work || '',
+    personal_preferences: data.personal_preferences || '',
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -40,9 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = useCallback(() => {
-    // Clear everything from localStorage
     localStorage.clear()
-    document.documentElement.setAttribute('data-theme', 'light')
     setUser(null)
   }, [])
 
@@ -57,12 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const res = await apiClient.get('/auth/me')
-        setUser({
-          id: res.data.id,
-          email: res.data.email,
-          display_name: res.data.display_name || '',
-          username: res.data.username || '',
-        })
+        setUser(userFromResponse(res.data))
       } catch {
         // Token expired — try refresh
         const refreshToken = localStorage.getItem(REFRESH_KEY)
@@ -71,12 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const res = await apiClient.post('/auth/refresh', { refresh_token: refreshToken })
             storeTokens(res.data.access_token, res.data.refresh_token)
             const meRes = await apiClient.get('/auth/me')
-            setUser({
-              id: meRes.data.id,
-              email: meRes.data.email,
-              display_name: meRes.data.display_name || '',
-              username: meRes.data.username || '',
-            })
+            setUser(userFromResponse(meRes.data))
           } catch {
             clearTokens()
           }
@@ -95,34 +106,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await apiClient.post('/auth/login', { email, password })
     storeTokens(res.data.access_token, res.data.refresh_token)
     const meRes = await apiClient.get('/auth/me')
-    setUser({
-      id: meRes.data.id,
-      email: meRes.data.email,
-      display_name: meRes.data.display_name || '',
-      username: meRes.data.username || '',
-    })
+    setUser(userFromResponse(meRes.data))
   }
 
   const register = async (email: string, password: string) => {
     const res = await apiClient.post('/auth/register', { email, password })
     storeTokens(res.data.access_token, res.data.refresh_token)
     const meRes = await apiClient.get('/auth/me')
-    setUser({
-      id: meRes.data.id,
-      email: meRes.data.email,
-      display_name: meRes.data.display_name || '',
-      username: meRes.data.username || '',
-    })
+    setUser(userFromResponse(meRes.data))
   }
 
-  const updateProfile = async (displayName: string, username: string) => {
-    const res = await apiClient.patch('/auth/profile', { display_name: displayName, username })
-    setUser({
-      id: res.data.id,
-      email: res.data.email,
-      display_name: res.data.display_name || '',
-      username: res.data.username || '',
+  const updateProfile = async (data: ProfileData) => {
+    const res = await apiClient.patch('/auth/profile', {
+      display_name: data.display_name,
+      username: data.username,
+      field_of_work: data.field_of_work ?? '',
+      personal_preferences: data.personal_preferences ?? '',
     })
+    setUser(userFromResponse(res.data))
+  }
+
+  const regenerateAvatar = async () => {
+    const res = await apiClient.post('/auth/avatar/regenerate')
+    setUser(userFromResponse(res.data))
+    return res.data.avatar
   }
 
   const changePassword = async (currentPassword: string, newPassword: string) => {
@@ -148,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         updateProfile,
+        regenerateAvatar,
         changePassword,
         deleteAccount,
       }}
