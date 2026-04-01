@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { apiClient } from '../config/api'
 import { ChatMessages, ChatSkeleton } from '../components'
-import { loadMessagesFromSession } from '../utils'
 import '../App.css'
 
 interface SharedMessage {
@@ -28,9 +27,25 @@ function SharedSession() {
         const res = await apiClient.get(`/shared/${shareToken}`)
         const session = res.data.session
         setSessionTitle(session.title || 'Shared Session')
-        setMessages(loadMessagesFromSession(session) as SharedMessage[])
-      } catch (err) {
-        console.error('Error loading shared session:', err)
+        const mapped: SharedMessage[] = (session.messages || []).map(
+          (msg: {
+            role: string
+            content: string
+            model_name?: string
+            response_time_ms?: number
+            file?: { filename: string }
+            is_artifact?: boolean
+          }) => ({
+            role: msg.role,
+            content: msg.content,
+            modelName: msg.model_name,
+            responseTime: msg.response_time_ms,
+            file: msg.file,
+            isArtifact: msg.is_artifact,
+          })
+        )
+        setMessages(mapped)
+      } catch {
         setError('This shared session is not available or has been revoked.')
       } finally {
         setLoading(false)

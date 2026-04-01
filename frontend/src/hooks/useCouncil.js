@@ -246,12 +246,19 @@ function useCouncil() {
 
     for await (const { event, data } of parseSSE(reader)) {
       switch (event) {
+        case 'web_search':
+          setCurrentStep('Searching the web...')
+          break
+
+        case 'thinking':
+          setCurrentStep('Thinking deeply...')
+          break
+
         case 'artifact_hint':
           isArtifact = true
           break
 
         case 'message_start':
-          setCurrentStep('')
           setMessages((prev) => {
             streamingIndex = prev.length
             return [
@@ -269,6 +276,7 @@ function useCouncil() {
           break
 
         case 'token':
+          setCurrentStep('')
           setMessages((prev) => {
             if (streamingIndex === null) return prev
             const updated = [...prev]
@@ -319,19 +327,18 @@ function useCouncil() {
     setLoading(true)
 
     setMessages((prev) => [...prev, { role: 'user', content: userQuestion }])
+    setCurrentStep('Thinking...')
 
     try {
       let currentSessionId = sessionId
 
       if (currentSessionId) {
         // Continue existing session
-        setCurrentStep('Continuing conversation...')
         await apiClient.post(`/session/${currentSessionId}/continue`, {
           question: userQuestion,
         })
       } else {
         // Create new session
-        setCurrentStep('Creating session...')
         const createRes = await apiClient.post('/session', {
           question: userQuestion,
         })
@@ -339,7 +346,6 @@ function useCouncil() {
         setSessionId(currentSessionId)
       }
 
-      setCurrentStep('Assistant is typing...')
       await streamResponse(currentSessionId)
 
       await fetchSessions()
@@ -371,13 +377,13 @@ function useCouncil() {
         file: { filename: file.name, size: file.size },
       },
     ])
+    setCurrentStep('Thinking...')
 
     try {
       let currentSessionId = sessionId
 
       if (!currentSessionId) {
         // Create an empty session first
-        setCurrentStep('Creating session...')
         const createRes = await apiClient.post('/session', { question: userText })
         currentSessionId = createRes.data.session.id
         setSessionId(currentSessionId)
@@ -402,7 +408,6 @@ function useCouncil() {
         })
       }
 
-      setCurrentStep('')
       await streamResponse(currentSessionId)
       await fetchSessions()
     } catch (error) {

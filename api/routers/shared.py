@@ -29,4 +29,7 @@ async def get_shared_session(
             detail="Shared session not found or sharing has been revoked",
         )
 
+    # Strip sensitive fields for public access
+    session.user_id = None
+
     return SessionResponse(session=session, message="Shared session retrieved")

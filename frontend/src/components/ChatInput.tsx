@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
+import ModelSelector from './ModelSelector'
 
 const ALLOWED_TYPES = [
   'application/pdf',
@@ -195,26 +196,29 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
               onChange={handleFileSelect}
               hidden
             />
-            <button
-              className="send-btn"
-              onClick={handleSend}
-              disabled={disabled || !hasContent}
-              title="Send (Enter)"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div className="input-actions-right">
+              <ModelSelector />
+              <button
+                className="send-btn"
+                onClick={handleSend}
+                disabled={disabled || !hasContent}
+                title="Send (Enter)"
               >
-                <line x1="12" y1="19" x2="12" y2="5" />
-                <polyline points="5 12 12 5 19 12" />
-              </svg>
-            </button>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="12" y1="19" x2="12" y2="5" />
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 

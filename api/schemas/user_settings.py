@@ -14,6 +14,7 @@ class UserSettings(BaseModel):
     )
 
 
+
 class UserSettingsUpdate(BaseModel):
     """Request to update user settings."""
 

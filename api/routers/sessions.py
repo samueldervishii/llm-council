@@ -29,6 +29,8 @@ from schemas import (
     SessionSummary,
     SessionUpdateRequest,
     ShareResponse,
+    FeedbackCreate,
+    FeedbackResponse,
 )
 from services.chat import ChatService
 
@@ -611,3 +613,56 @@ async def export_sessions(
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.post("/{session_id}/feedback", response_model=FeedbackResponse)
+async def submit_feedback(
+    session_id: str,
+    body: FeedbackCreate,
+    repo: SessionRepository = Depends(get_session_repository),
+    user_id: str = Depends(get_current_user),
+    _rate_limit: None = Depends(check_rate_limit),
+):
+    """Submit feedback (thumbs up/down) on an assistant message."""
+    from schemas.feedback import ALLOWED_ISSUE_TYPES
+
+    session = await repo.get(session_id, user_id=user_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if body.message_index >= len(session.messages):
+        raise HTTPException(status_code=400, detail="Invalid message index")
+
+    if session.messages[body.message_index].role != "assistant":
+        raise HTTPException(status_code=400, detail="Can only rate assistant messages")
+
+    if body.issue_type and body.issue_type not in ALLOWED_ISSUE_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid issue type")
+
+    clean_comment = sanitize_text(body.comment, max_length=2000) if body.comment else None
+
+    db = repo.collection.database
+    await db["feedback"].update_one(
+        {
+            "session_id": session_id,
+            "user_id": user_id,
+            "message_index": body.message_index,
+        },
+        {
+            "$set": {
+                "rating": body.rating,
+                "comment": clean_comment,
+                "issue_type": body.issue_type,
+                "updated_at": datetime.now(timezone.utc).isoformat() + "Z",
+            },
+            "$setOnInsert": {
+                "session_id": session_id,
+                "user_id": user_id,
+                "message_index": body.message_index,
+                "created_at": datetime.now(timezone.utc).isoformat() + "Z",
+            },
+        },
+        upsert=True,
+    )
+
+    return FeedbackResponse(message="Feedback submitted")

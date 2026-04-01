@@ -1,8 +1,11 @@
 import { useState, memo } from 'react'
+import { Copy, Check, Download, FileText, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { API_BASE, getAccessToken } from '../config/api'
+import { apiClient } from '../config/api'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeSanitize from 'rehype-sanitize'
+import FeedbackModal from './FeedbackModal'
 
 function formatResponseTime(ms?: number) {
   if (!ms) return null
@@ -38,6 +41,10 @@ function Message({
   isArtifact,
 }: MessageProps) {
   const [copied, setCopied] = useState(false)
+  const [feedbackType, setFeedbackType] = useState<'positive' | 'negative' | null>(null)
+  const [submittedRating, setSubmittedRating] = useState<'positive' | 'negative' | null>(null)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const formattedTime = formatResponseTime(responseTime)
 
   const handleCopy = async () => {
@@ -59,6 +66,52 @@ function Message({
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
+    }
+  }
+
+  const handleFeedbackClick = (type: 'positive' | 'negative') => {
+    setFeedbackType(type)
+    setShowFeedbackModal(true)
+  }
+
+  const handleFeedbackSubmit = async (comment: string, issueType?: string) => {
+    if (!sessionId || isSubmitting) return
+    setIsSubmitting(true)
+    try {
+      await apiClient.post(`/session/${sessionId}/feedback`, {
+        message_index: messageIndex,
+        rating: feedbackType,
+        comment: comment || null,
+        issue_type: issueType || null,
+      })
+      setSubmittedRating(feedbackType)
+    } catch (err) {
+      console.error('Feedback failed:', err)
+    } finally {
+      setIsSubmitting(false)
+      setShowFeedbackModal(false)
+      setFeedbackType(null)
+    }
+  }
+
+  const handleDownloadDocx = async () => {
+    if (!sessionId || messageIndex == null) return
+    try {
+      const token = getAccessToken()
+      const res = await fetch(
+        `${API_BASE}/session/${sessionId}/message/${messageIndex}/export-docx`,
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      )
+      if (!res.ok) return
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'cortex-document.docx'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('DOCX download failed:', err)
     }
   }
 
@@ -89,22 +142,17 @@ function Message({
             }}
             title="Download file"
           >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
+            <FileText size={13} />
             {file.filename}
           </button>
         )}
         <div className="message-content">
           <p>{content}</p>
+        </div>
+        <div className="message-actions">
+          <button className="message-action-btn" onClick={handleCopy} title="Copy">
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
         </div>
       </div>
     )
@@ -120,27 +168,6 @@ function Message({
     )
   }
 
-  const handleDownloadDocx = async () => {
-    if (!sessionId || messageIndex == null) return
-    try {
-      const token = getAccessToken()
-      const res = await fetch(
-        `${API_BASE}/session/${sessionId}/message/${messageIndex}/export-docx`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      )
-      if (!res.ok) return
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'cortex-document.docx'
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('DOCX download failed:', err)
-    }
-  }
-
   // Artifact card for generated documents
   if (isArtifact) {
     const titleMatch = content.match(/^#+ (.+)/m)
@@ -152,17 +179,7 @@ function Message({
         <div className="artifact-card">
           <div className="artifact-header">
             <div className="artifact-title-row">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
+              <FileText size={16} />
               <span className="artifact-title">{isEmpty ? 'Generating...' : artifactTitle}</span>
               {streaming && <span className="artifact-generating">writing</span>}
             </div>
@@ -185,23 +202,7 @@ function Message({
           {!streaming && !isEmpty && (
             <div className="artifact-footer">
               <button className="artifact-btn" onClick={handleCopy} title="Copy text">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  {copied ? (
-                    <polyline points="20 6 9 17 4 12" />
-                  ) : (
-                    <>
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                    </>
-                  )}
-                </svg>
+                {copied ? <Check size={14} /> : <Copy size={14} />}
                 {copied ? 'Copied' : 'Copy'}
               </button>
               <button
@@ -209,18 +210,7 @@ function Message({
                 onClick={handleDownloadDocx}
                 title="Download as DOCX"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
+                <Download size={14} />
                 DOCX
               </button>
             </div>
@@ -238,32 +228,6 @@ function Message({
           <div className="message-header">
             <span className="model-name">{modelName}</span>
             {formattedTime && <span className="response-time">{formattedTime}</span>}
-            <button className="copy-btn" onClick={handleCopy} title="Copy response">
-              {copied ? (
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              ) : (
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              )}
-            </button>
           </div>
         )}
         <div className="message-content">
@@ -271,7 +235,39 @@ function Message({
             {content}
           </ReactMarkdown>
         </div>
+        {!streaming && content && (
+          <div className="message-actions">
+            <button className="message-action-btn" onClick={handleCopy} title="Copy">
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+            <button
+              className={`message-action-btn ${submittedRating === 'positive' ? 'active' : ''}`}
+              onClick={() => handleFeedbackClick('positive')}
+              title="Good response"
+            >
+              <ThumbsUp size={14} />
+            </button>
+            <button
+              className={`message-action-btn ${submittedRating === 'negative' ? 'active' : ''}`}
+              onClick={() => handleFeedbackClick('negative')}
+              title="Bad response"
+            >
+              <ThumbsDown size={14} />
+            </button>
+          </div>
+        )}
       </div>
+
+      {showFeedbackModal && feedbackType && (
+        <FeedbackModal
+          type={feedbackType}
+          onSubmit={handleFeedbackSubmit}
+          onClose={() => {
+            setShowFeedbackModal(false)
+            setFeedbackType(null)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -68,16 +68,9 @@ function WelcomeScreen({
         centered
       />
 
-      <div className="welcome-footer">
-        <span className="welcome-shortcut-hint">
-          Press <kbd>?</kbd> for keyboard shortcuts
-        </span>
-        <span className="powered-by">
-          <a href="https://www.anthropic.com/news/claude-sonnet-4-6" target="_blank">
-            Powered by Anthropic Claude Sonnet 4.6
-          </a>
-        </span>
-      </div>
+      <span className="welcome-shortcut-hint">
+        Press <kbd>?</kbd> for keyboard shortcuts
+      </span>
     </div>
   )
 }

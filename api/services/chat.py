@@ -90,14 +90,22 @@ class ChatService:
         })
 
         try:
-            async for token in self.client.stream_chat(
+            async for event_type, content in self.client.stream_chat(
                 model_id=model["id"],
                 prompt=prompt,
                 system_prompt=system_prompt,
                 max_tokens=8192,
             ):
-                full_response += token
-                token_buffer += token
+                if event_type == "thinking":
+                    yield _sse_event("thinking", {"content": content})
+                    continue
+
+                if event_type == "web_search":
+                    yield _sse_event("web_search", {})
+                    continue
+
+                full_response += content
+                token_buffer += content
                 token_count += 1
 
                 # Flush buffer when batch size reached

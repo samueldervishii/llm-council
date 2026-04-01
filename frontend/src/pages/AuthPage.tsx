@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, Navigate } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import './AuthPage.css'
 
@@ -13,6 +14,8 @@ function AuthPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -93,11 +96,18 @@ function AuthPage() {
               <span className="auth-brand-name">Cortex</span>
             </div>
             <h1 className="auth-headline">
-              Your mind,<br />amplified.
+              Your mind,
+              <br />
+              amplified.
             </h1>
             <p className="auth-subtitle">
               Intelligent AI conversations, beautifully simple.{' '}
-              <a href="https://cortex-al.vercel.app" className="auth-learn-more" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://cortex-al.vercel.app"
+                className="auth-learn-more"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Learn more &rarr;
               </a>
             </p>
@@ -138,29 +148,49 @@ function AuthPage() {
 
               <div className="auth-field">
                 <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={isRegister ? 'Min. 8 characters' : 'Your password'}
-                  autoComplete={isRegister ? 'new-password' : 'current-password'}
-                  disabled={submitting}
-                />
+                <div className="auth-input-wrapper">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={isRegister ? 'Min. 8 characters' : 'Your password'}
+                    autoComplete={isRegister ? 'new-password' : 'current-password'}
+                    disabled={submitting}
+                  />
+                  <button
+                    type="button"
+                    className="auth-eye-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               {isRegister && (
                 <div className="auth-field">
                   <label htmlFor="confirm-password">Confirm password</label>
-                  <input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeat your password"
-                    autoComplete="new-password"
-                    disabled={submitting}
-                  />
+                  <div className="auth-input-wrapper">
+                    <input
+                      id="confirm-password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Repeat your password"
+                      autoComplete="new-password"
+                      disabled={submitting}
+                    />
+                    <button
+                      type="button"
+                      className="auth-eye-btn"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -222,16 +252,20 @@ function AuthPage() {
                 <strong>Great topic!</strong> Here's a structured outline to get you started:
               </p>
               <p>
-                <strong>1. Introduction</strong> — Define AI in education, state your thesis objective and core research questions
+                <strong>1. Introduction</strong> — Define AI in education, state your thesis
+                objective and core research questions
               </p>
               <p>
-                <strong>2. Literature Review</strong> — Survey current AI tools in pedagogy, adaptive learning systems, and historical context
+                <strong>2. Literature Review</strong> — Survey current AI tools in pedagogy,
+                adaptive learning systems, and historical context
               </p>
               <p>
-                <strong>3. Methodology</strong> — Detail your research approach, data collection strategy, and participant demographics
+                <strong>3. Methodology</strong> — Detail your research approach, data collection
+                strategy, and participant demographics
               </p>
               <p>
-                <strong>4. Analysis &amp; Findings</strong> — Present impact on student outcomes, accessibility improvements, and engagement metrics
+                <strong>4. Analysis &amp; Findings</strong> — Present impact on student outcomes,
+                accessibility improvements, and engagement metrics
               </p>
               <p className="auth-preview-followup">
                 Would you like me to expand on any of these sections?

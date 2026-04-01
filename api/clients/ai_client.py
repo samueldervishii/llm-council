@@ -165,8 +165,14 @@ class AIClient:
         system_prompt: Optional[str] = None,
         max_tokens: int = 2048,
         temperature: float = 0.7,
-    ) -> AsyncGenerator[str, None]:
-        """Stream tokens from the Anthropic Messages API."""
+    ) -> AsyncGenerator[tuple[str, str], None]:
+        """Stream tokens from the Anthropic Messages API.
+
+        Yields (event_type, content) tuples:
+        - ("text", token) for text tokens
+        - ("thinking", text) for thinking blocks (adaptive thinking)
+        - ("web_search", "") when web search is triggered
+        """
         logger.info(f"Anthropic streaming request to model: {model_id}")
 
         headers = {
@@ -178,9 +184,13 @@ class AIClient:
         payload = {
             "model": model_id,
             "max_tokens": max_tokens,
-            "temperature": temperature,
+            "temperature": 1,
             "stream": True,
             "messages": [{"role": "user", "content": prompt}],
+            "thinking": {"type": "adaptive"},
+            "tools": [
+                {"type": "web_search_20250305", "name": "web_search", "max_uses": 3},
+            ],
         }
 
         if system_prompt:
@@ -198,6 +208,8 @@ class AIClient:
                 logger.error(f"Anthropic stream error: {response.status_code} - {body.decode()[:500]}")
                 raise Exception("The AI service is temporarily unavailable. Please try again.")
 
+            current_block_type = None
+
             async for line in response.aiter_lines():
                 if not line.startswith("data: "):
                     continue
@@ -211,9 +223,27 @@ class AIClient:
                     continue
 
                 event_type = data.get("type", "")
-                if event_type == "content_block_delta":
+
+                if event_type == "content_block_start":
+                    block = data.get("content_block", {})
+                    current_block_type = block.get("type", "text")
+
+                    # Signal web search to frontend
+                    if current_block_type == "server_tool_use":
+                        yield ("web_search", "")
+
+                elif event_type == "content_block_delta":
                     delta = data.get("delta", {})
-                    if delta.get("type") == "text_delta":
+                    delta_type = delta.get("type", "")
+
+                    if delta_type == "thinking_delta":
+                        text = delta.get("thinking", "")
+                        if text:
+                            yield ("thinking", text)
+                    elif delta_type == "text_delta":
                         text = delta.get("text", "")
                         if text:
-                            yield text
+                            yield ("text", text)
+
+                elif event_type == "content_block_stop":
+                    current_block_type = None

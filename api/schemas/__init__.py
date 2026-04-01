@@ -23,6 +23,7 @@ from .user import (
     TokenResponse,
     RefreshRequest,
 )
+from .feedback import FeedbackCreate, FeedbackResponse
 
 __all__ = [
     "Message",
@@ -43,4 +44,6 @@ __all__ = [
     "UserResponse",
     "TokenResponse",
     "RefreshRequest",
+    "FeedbackCreate",
+    "FeedbackResponse",
 ]

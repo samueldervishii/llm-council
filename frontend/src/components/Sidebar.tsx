@@ -12,6 +12,7 @@ import {
   SquarePen,
 } from 'lucide-react'
 import { FRONTEND_URL } from '../config/api'
+import { useToast } from '../contexts/ToastContext'
 
 interface Session {
   id: string
@@ -45,13 +46,13 @@ function Sidebar({
   onCloseMobile,
   onNewChat,
 }: SidebarProps) {
+  const { showToast } = useToast()
   const [shareModal, setShareModal] = useState({ open: false, url: '', loading: false })
   const [deleteConfirm, setDeleteConfirm] = useState({
     open: false,
     sessionId: null as string | null,
     title: '',
   })
-  const [showToast, setShowToast] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
@@ -148,8 +149,7 @@ function Sidebar({
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareModal.url)
-    setShowToast(true)
-    setTimeout(() => setShowToast(false), 2000)
+    showToast('Link copied to clipboard!', 'success')
   }
 
   const startEditing = (e: React.MouseEvent, session: Session) => {
@@ -476,22 +476,6 @@ function Sidebar({
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {showToast && (
-        <div className="copy-toast">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          Link copied to clipboard!
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import ModelSelector from './ModelSelector'
 
 interface TopBarProps {
   onNewChat: () => void
@@ -47,7 +46,6 @@ function TopBar({ onNewChat, onToggleSidebar, onOpenCommandPalette, sidebarOpen 
             </svg>
           </button>
         )}
-        <ModelSelector />
       </div>
 
       <div className="top-bar-right">

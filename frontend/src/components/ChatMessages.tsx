@@ -103,6 +103,17 @@ function ChatMessages({
           />
         ))}
 
+        {loading && currentStep && (
+          <div className="thinking-indicator">
+            <div className="thinking-dots">
+              <span />
+              <span />
+              <span />
+            </div>
+            <span className="thinking-text">{currentStep}</span>
+          </div>
+        )}
+
         {!loading && sessionId && (
           <div className="session-actions">
             <button
