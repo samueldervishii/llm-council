@@ -1,3 +1,4 @@
+export { default as ArtifactPanel } from './ArtifactPanel'
 export { default as ChatInput } from './ChatInput'
 export { default as ChatMessages } from './ChatMessages'
 export { default as ChatSkeleton } from './ChatSkeleton'

@@ -28,6 +28,8 @@ interface ChatMessagesProps {
   onFileUpload?: (file: File, message: string) => void
   readOnly?: boolean
   sessionId?: string
+  onBranch?: (messageIndex: number) => void
+  onOpenArtifact?: (messageIndex: number) => void
 }
 
 function ChatMessages({
@@ -40,6 +42,8 @@ function ChatMessages({
   onFileUpload,
   readOnly = false,
   sessionId,
+  onBranch,
+  onOpenArtifact,
 }: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -100,6 +104,8 @@ function ChatMessages({
             isArtifact={msg.isArtifact}
             messageIndex={idx}
             sessionId={sessionId}
+            onBranch={!readOnly ? onBranch : undefined}
+            citations={(msg as any).citations}
           />
         ))}
 

@@ -67,5 +67,17 @@ class UserRepository:
         return result.modified_count > 0
 
     async def delete(self, user_id: str) -> bool:
+        """Delete user and all associated data (sessions, settings, feedback, artifacts)."""
+        db = self.collection.database
+        # Get session IDs for artifact cleanup
+        session_ids = []
+        async for doc in db["sessions"].find({"user_id": user_id}, {"id": 1}):
+            session_ids.append(doc["id"])
+        if session_ids:
+            await db["artifacts"].delete_many({"session_id": {"$in": session_ids}})
+        # Remove all user data
+        await db["sessions"].delete_many({"user_id": user_id})
+        await db["user_settings"].delete_many({"user_id": user_id})
+        await db["feedback"].delete_many({"user_id": user_id})
         result = await self.collection.delete_one({"id": user_id})
         return result.deleted_count > 0

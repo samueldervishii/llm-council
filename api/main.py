@@ -224,21 +224,26 @@ app.add_middleware(
 )
 
 
-# Request body size limit (1MB)
-MAX_REQUEST_BODY_SIZE = 1 * 1024 * 1024
+# Request body size limits
+MAX_REQUEST_BODY_SIZE = 1 * 1024 * 1024        # 1MB for normal requests
+MAX_UPLOAD_BODY_SIZE = 10 * 1024 * 1024        # 10MB for file upload routes
 
 
 @app.middleware("http")
 async def limit_request_body(request: Request, call_next):
-    """Reject requests with bodies larger than MAX_REQUEST_BODY_SIZE."""
+    """Reject requests with bodies larger than the allowed limit."""
     content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > MAX_REQUEST_BODY_SIZE:
-        from fastapi.responses import JSONResponse
-
-        return JSONResponse(
-            status_code=413,
-            content={"detail": "Request body too large. Maximum size is 1MB."},
-        )
+    if content_length:
+        size = int(content_length)
+        # File upload routes get a higher limit
+        limit = MAX_UPLOAD_BODY_SIZE if "/upload-file" in request.url.path else MAX_REQUEST_BODY_SIZE
+        if size > limit:
+            from fastapi.responses import JSONResponse
+            max_mb = limit // (1024 * 1024)
+            return JSONResponse(
+                status_code=413,
+                content={"detail": f"Request body too large. Maximum size is {max_mb}MB."},
+            )
     return await call_next(request)
 
 

@@ -82,6 +82,8 @@ async def register(
     _reg_limit: None = Depends(check_registration_limit),
 ):
     """Register a new user account."""
+    from pymongo.errors import DuplicateKeyError
+
     existing = await user_repo.get_by_email(request.email)
     if existing:
         # Use generic error to prevent email enumeration
@@ -93,7 +95,14 @@ async def register(
     user_id = str(uuid.uuid4())
     hashed = hash_password(request.password)
     avatar = generate_avatar(request.email)
-    await user_repo.create(user_id, request.email, hashed, avatar=avatar)
+
+    try:
+        await user_repo.create(user_id, request.email, hashed, avatar=avatar)
+    except DuplicateKeyError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Registration could not be completed. Please try again or use a different email.",
+        )
 
     logger.info(f"New user registered: {user_id}")
 
@@ -165,6 +174,8 @@ async def update_profile(
     user_repo: UserRepository = Depends(get_user_repository),
 ):
     """Update the current user's profile."""
+    from pymongo.errors import DuplicateKeyError
+
     # Check username uniqueness if provided
     if request.username:
         existing = await user_repo.get_by_username(request.username)
@@ -174,13 +185,20 @@ async def update_profile(
                 detail="Username is not available",
             )
 
-    user = await user_repo.update_profile(
-        current_user_id,
-        request.display_name,
-        request.username,
-        field_of_work=request.field_of_work,
-        personal_preferences=request.personal_preferences,
-    )
+    try:
+        user = await user_repo.update_profile(
+            current_user_id,
+            request.display_name,
+            request.username,
+            field_of_work=request.field_of_work,
+            personal_preferences=request.personal_preferences,
+        )
+    except DuplicateKeyError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username is not available",
+        )
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -258,6 +276,8 @@ async def refresh_token(
     _rate_limit: None = Depends(check_rate_limit),
 ):
     """Exchange a refresh token for a new access + refresh token pair."""
+    from datetime import datetime, timezone
+
     payload = decode_token(request.refresh_token, expected_type="refresh")
     user_id = payload["sub"]
 
@@ -268,6 +288,18 @@ async def refresh_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User no longer exists",
         )
+
+    # Reject refresh tokens issued before a password change
+    token_iat = payload.get("iat")
+    if token_iat and user.get("password_changed_at"):
+        pwd_changed = user["password_changed_at"]
+        if isinstance(pwd_changed, datetime):
+            token_issued = datetime.fromtimestamp(token_iat, tz=timezone.utc)
+            if token_issued < pwd_changed:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token invalidated by password change. Please log in again.",
+                )
 
     return TokenResponse(
         access_token=create_access_token(user_id),

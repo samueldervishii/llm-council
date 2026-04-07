@@ -4,6 +4,13 @@ import { apiClient } from '../config/api'
 import { ChatMessages, ChatSkeleton } from '../components'
 import '../App.css'
 
+interface SharedCitation {
+  id: string
+  text: string
+  source: string
+  page?: string
+}
+
 interface SharedMessage {
   role: 'user' | 'assistant' | 'error'
   content: string
@@ -11,6 +18,7 @@ interface SharedMessage {
   responseTime?: number
   file?: { filename: string }
   isArtifact?: boolean
+  citations?: SharedCitation[]
 }
 
 function SharedSession() {
@@ -35,6 +43,7 @@ function SharedSession() {
             response_time_ms?: number
             file?: { filename: string }
             is_artifact?: boolean
+            citations?: SharedCitation[]
           }) => ({
             role: msg.role,
             content: msg.content,
@@ -42,6 +51,7 @@ function SharedSession() {
             responseTime: msg.response_time_ms,
             file: msg.file,
             isArtifact: msg.is_artifact,
+            ...(msg.citations && msg.citations.length > 0 && { citations: msg.citations }),
           })
         )
         setMessages(mapped)

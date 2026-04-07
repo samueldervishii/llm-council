@@ -1,4 +1,6 @@
 from .session import (
+    SourceChunk,
+    CitationRef,
     FileAttachment,
     Message,
     ChatSession,
@@ -8,6 +10,9 @@ from .session import (
     SessionSummary,
     SessionUpdateRequest,
     SessionListResponse,
+    Artifact,
+    ArtifactListResponse,
+    BranchRequest,
     ShareResponse,
 )
 from .user_settings import (
@@ -34,6 +39,9 @@ __all__ = [
     "SessionSummary",
     "SessionUpdateRequest",
     "SessionListResponse",
+    "Artifact",
+    "ArtifactListResponse",
+    "BranchRequest",
     "ShareResponse",
     "UserSettings",
     "UserSettingsUpdate",

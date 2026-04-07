@@ -101,6 +101,19 @@ async def ensure_indexes(database: AsyncIOMotorDatabase) -> None:
         await users_collection.create_index(
             [("email", ASCENDING)], unique=True, name="idx_user_email"
         )
+        await users_collection.create_index(
+            [("username", ASCENDING)],
+            unique=True,
+            partialFilterExpression={"username": {"$type": "string", "$gt": ""}},
+            name="idx_user_username",
+        )
+
+        # Artifacts collection indexes
+        artifacts_collection = database["artifacts"]
+        await artifacts_collection.create_index(
+            [("session_id", ASCENDING), ("created_at", ASCENDING)],
+            name="idx_artifact_session",
+        )
 
         _indexes_created = True
         logger.info("MongoDB indexes created successfully")

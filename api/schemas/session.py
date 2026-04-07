@@ -3,6 +3,24 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
+class SourceChunk(BaseModel):
+    """A chunk of text extracted from a file, with a stable identifier."""
+
+    id: str = Field(..., description="Chunk identifier (e.g. 'chunk-1' or 'page-3')")
+    text: str = Field(..., description="Chunk text content")
+    source: str = Field("", description="Source filename")
+    page: Optional[str] = Field(None, description="Page number if available")
+
+
+class CitationRef(BaseModel):
+    """A citation reference in an assistant message, linking to a source chunk."""
+
+    id: str = Field(..., description="Chunk ID this citation refers to")
+    text: str = Field("", description="Excerpt from the source")
+    source: str = Field("", description="Source filename")
+    page: Optional[str] = Field(None, description="Page number if available")
+
+
 class FileAttachment(BaseModel):
     """A file attached to a message."""
 
@@ -11,6 +29,7 @@ class FileAttachment(BaseModel):
     size: int = Field(..., description="File size in bytes")
     extracted_text: str = Field("", description="Text extracted from the file")
     data_base64: str = Field("", description="Base64-encoded file content for download")
+    chunks: List[SourceChunk] = Field(default=[], description="Chunked text with identifiers")
 
 
 class Message(BaseModel):
@@ -23,6 +42,7 @@ class Message(BaseModel):
     response_time_ms: Optional[int] = Field(None, description="Response time in ms")
     file: Optional[FileAttachment] = Field(None, description="Attached file")
     is_artifact: bool = Field(False, description="Whether this is a generated document/artifact")
+    citations: List[CitationRef] = Field(default=[], description="Source citations for file-based answers")
 
 
 class ChatSession(BaseModel):
@@ -100,6 +120,30 @@ class SessionListResponse(BaseModel):
 
     sessions: List[SessionSummary]
     count: int
+
+
+class Artifact(BaseModel):
+    """A generated document/artifact linked to a session message."""
+
+    id: str = Field(..., description="Unique artifact ID")
+    session_id: str = Field(..., description="Originating session ID")
+    message_index: int = Field(..., description="Index of the assistant message that produced this")
+    title: str = Field("", description="Artifact title (extracted from first heading)")
+    content: str = Field("", description="Artifact content (markdown)")
+    created_at: Optional[str] = Field(None)
+
+
+class ArtifactListResponse(BaseModel):
+    """List of artifacts for a session."""
+
+    artifacts: List[Artifact]
+    count: int
+
+
+class BranchRequest(BaseModel):
+    """Request to branch a session from a specific message."""
+
+    message_index: int = Field(..., ge=0, description="Branch after this message index (inclusive)")
 
 
 class ShareResponse(BaseModel):

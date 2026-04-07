@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { apiClient } from '../config/api'
+import { clearSessionCache } from '../hooks/useCouncil'
 
 interface User {
   id: string
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.clear()
+    clearSessionCache()
     setUser(null)
   }, [])
 
@@ -142,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const deleteAccount = async (password: string) => {
     await apiClient.delete('/auth/account', { data: { password } })
     clearTokens()
+    clearSessionCache()
     setUser(null)
   }
 

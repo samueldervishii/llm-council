@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import {
+  ArtifactPanel,
   TopBar,
   WelcomeScreen,
   ChatMessages,
@@ -34,6 +35,7 @@ function App() {
     deleteSession,
     renameSession,
     togglePinSession,
+    branchSession,
     shareSession,
     exportSession,
     sessionLoadError,
@@ -41,6 +43,7 @@ function App() {
   } = useCouncil() as any
 
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [artifactPanelOpen, setArtifactPanelOpen] = useState(false)
 
   useEffect(() => {
     const runAutoDeleteCleanup = async () => {
@@ -62,6 +65,16 @@ function App() {
   const handleNewChat = () => {
     startNewChat()
     navigate('/')
+  }
+
+  const handleBranch = async (messageIndex: number) => {
+    if (!sessionId) return
+    try {
+      const newId = await branchSession(sessionId, messageIndex)
+      navigate(`/sessions/${newId}`)
+    } catch {
+      // Error already logged in hook
+    }
   }
 
   useEffect(() => {
@@ -136,6 +149,8 @@ function App() {
             onToggleSidebar={toggleSidebar}
             onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
             sidebarOpen={sidebarOpen}
+            onOpenArtifacts={() => setArtifactPanelOpen(true)}
+            hasSession={!!sessionId}
           />
           {isLoadingSession ? (
             <ChatSkeleton />
@@ -163,6 +178,7 @@ function App() {
               onSubmit={startChat}
               onFileUpload={sendFileMessage}
               sessionId={sessionId}
+              onBranch={handleBranch}
             />
           )}
         </div>
@@ -178,6 +194,12 @@ function App() {
       />
 
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+      <ArtifactPanel
+        sessionId={sessionId}
+        isOpen={artifactPanelOpen}
+        onClose={() => setArtifactPanelOpen(false)}
+      />
 
       <PWAInstallPrompt />
     </div>

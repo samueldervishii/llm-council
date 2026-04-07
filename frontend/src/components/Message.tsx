@@ -1,5 +1,5 @@
 import { useState, memo } from 'react'
-import { Copy, Check, Download, FileText, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { Copy, Check, Download, FileText, ThumbsUp, ThumbsDown, GitBranch } from 'lucide-react'
 import { API_BASE, getAccessToken } from '../config/api'
 import { apiClient } from '../config/api'
 import ReactMarkdown from 'react-markdown'
@@ -27,6 +27,15 @@ interface MessageProps {
   messageIndex: number
   sessionId?: string
   isArtifact?: boolean
+  onBranch?: (messageIndex: number) => void
+  citations?: Citation[]
+}
+
+export interface Citation {
+  id: string
+  text: string
+  source: string
+  page?: number | string
 }
 
 function Message({
@@ -39,6 +48,8 @@ function Message({
   messageIndex,
   sessionId,
   isArtifact,
+  onBranch,
+  citations,
 }: MessageProps) {
   const [copied, setCopied] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'positive' | 'negative' | null>(null)
@@ -153,6 +164,15 @@ function Message({
           <button className="message-action-btn" onClick={handleCopy} title="Copy">
             {copied ? <Check size={14} /> : <Copy size={14} />}
           </button>
+          {onBranch && sessionId && (
+            <button
+              className="message-action-btn"
+              onClick={() => onBranch(messageIndex)}
+              title="Branch from here"
+            >
+              <GitBranch size={14} />
+            </button>
+          )}
         </div>
       </div>
     )
@@ -235,6 +255,7 @@ function Message({
             {content}
           </ReactMarkdown>
         </div>
+        {citations && citations.length > 0 && <CitationList citations={citations} />}
         {!streaming && content && (
           <div className="message-actions">
             <button className="message-action-btn" onClick={handleCopy} title="Copy">
@@ -254,6 +275,15 @@ function Message({
             >
               <ThumbsDown size={14} />
             </button>
+            {onBranch && sessionId && (
+              <button
+                className="message-action-btn"
+                onClick={() => onBranch(messageIndex)}
+                title="Branch from here"
+              >
+                <GitBranch size={14} />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -268,6 +298,41 @@ function Message({
           }}
         />
       )}
+    </div>
+  )
+}
+
+function CitationList({ citations }: { citations: Citation[] }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  return (
+    <div className="citations">
+      <div className="citations-label">Sources</div>
+      <div className="citation-chips">
+        {citations.map((c) => (
+          <button
+            key={c.id}
+            className={`citation-chip ${expandedId === c.id ? 'expanded' : ''}`}
+            onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}
+          >
+            <FileText size={12} />
+            <span>{c.source}{c.page ? ` · p.${c.page}` : ''}</span>
+          </button>
+        ))}
+      </div>
+      {expandedId && (() => {
+        const c = citations.find((x) => x.id === expandedId)
+        if (!c) return null
+        return (
+          <div className="citation-excerpt">
+            <div className="citation-excerpt-header">
+              <span>{c.source}{c.page ? ` — Page ${c.page}` : ''}</span>
+              <button onClick={() => setExpandedId(null)}>&times;</button>
+            </div>
+            <p>{c.text}</p>
+          </div>
+        )
+      })()}
     </div>
   )
 }

@@ -41,6 +41,11 @@ async function* parseSSE(reader) {
 // Module-level cache: avoid re-fetching on page navigation (component remounts)
 let cachedSessions = null
 
+/** Clear the module-level session cache (call on logout). */
+export function clearSessionCache() {
+  cachedSessions = null
+}
+
 function useCouncil() {
   const [question, setQuestion] = useState('')
   const [messages, setMessages] = useState([])
@@ -54,6 +59,9 @@ function useCouncil() {
   // AbortController ref — used to cancel in-flight SSE streams on unmount
   // or when the user starts a new request before the previous one finishes.
   const abortControllerRef = useRef(null)
+
+  // Monotonic counter to detect stale loadSession responses
+  const loadRequestIdRef = useRef(0)
 
   // Cleanup: abort any in-flight stream when the component using this hook unmounts
   useEffect(() => {
@@ -82,6 +90,9 @@ function useCouncil() {
   }, [fetchSessions])
 
   const loadSession = async (id) => {
+    // Increment request counter — if another loadSession fires before this
+    // one resolves, the stale response will be discarded.
+    const requestId = ++loadRequestIdRef.current
     const startTime = Date.now()
     const minLoadingTime = 2000
 
@@ -97,6 +108,9 @@ function useCouncil() {
 
       const res = await Promise.race([apiClient.get(`/session/${id}`), timeoutPromise])
 
+      // Stale response guard: a newer loadSession was triggered while waiting
+      if (requestId !== loadRequestIdRef.current) return
+
       const session = res.data.session
 
       setSessionId(session.id)
@@ -110,6 +124,7 @@ function useCouncil() {
         ...(msg.response_time_ms && { responseTime: msg.response_time_ms }),
         ...(msg.is_artifact && { isArtifact: true }),
         ...(msg.file && { file: { filename: msg.file.filename, size: msg.file.size } }),
+        ...(msg.citations && msg.citations.length > 0 && { citations: msg.citations }),
       }))
 
       const elapsedTime = Date.now() - startTime
@@ -122,6 +137,8 @@ function useCouncil() {
       setMessages(loadedMessages)
       setSessionLoadError(null)
     } catch (error) {
+      // Discard errors from stale requests
+      if (requestId !== loadRequestIdRef.current) return
       console.error('Error loading session:', error)
 
       const elapsedTime = Date.now() - startTime
@@ -139,9 +156,11 @@ function useCouncil() {
         )
       }
     } finally {
-      setIsLoadingSession(false)
-      setLoading(false)
-      setCurrentStep('')
+      if (requestId === loadRequestIdRef.current) {
+        setIsLoadingSession(false)
+        setLoading(false)
+        setCurrentStep('')
+      }
     }
   }
 
@@ -175,6 +194,33 @@ function useCouncil() {
       await fetchSessions()
     } catch (error) {
       console.error('Error toggling pin:', error)
+      throw error
+    }
+  }
+
+  const branchSession = async (fromSessionId, messageIndex) => {
+    try {
+      const res = await apiClient.post(`/session/${fromSessionId}/branch`, {
+        message_index: messageIndex,
+      })
+      const newSession = res.data.session
+      await fetchSessions()
+      // Load the new branched session
+      setSessionId(newSession.id)
+      const loadedMessages = (newSession.messages || []).map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        ...(msg.model_id && { modelId: msg.model_id }),
+        ...(msg.model_name && { modelName: msg.model_name }),
+        ...(msg.response_time_ms && { responseTime: msg.response_time_ms }),
+        ...(msg.is_artifact && { isArtifact: true }),
+        ...(msg.file && { file: { filename: msg.file.filename, size: msg.file.size } }),
+        ...(msg.citations && msg.citations.length > 0 && { citations: msg.citations }),
+      }))
+      setMessages(loadedMessages)
+      return newSession.id
+    } catch (error) {
+      console.error('Error branching session:', error)
       throw error
     }
   }
@@ -424,6 +470,11 @@ function useCouncil() {
   }
 
   const startNewChat = () => {
+    // Cancel any in-flight stream so it doesn't append into the new chat
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
     setMessages([])
     setQuestion('')
     setLoading(false)
@@ -488,6 +539,7 @@ function useCouncil() {
     renameSession,
     togglePinSession,
     fetchSessions,
+    branchSession,
     shareSession,
     unshareSession,
     getShareInfo,

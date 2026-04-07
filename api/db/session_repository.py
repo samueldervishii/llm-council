@@ -310,11 +310,58 @@ class SessionRepository:
 
         return sessions
 
+    async def append_message(
+        self, session_id: str, message_doc: dict, position: Optional[int] = None
+    ) -> bool:
+        """Append a message to a session without replacing the full document.
+        This avoids overwriting concurrent mutations (pin, rename, delete, share).
+
+        Args:
+            position: If set, insert at this index instead of the end.
+                      Used by stream completion to place the assistant reply
+                      right after the user message it responded to.
+        """
+        if position is not None:
+            push_spec = {"$each": [message_doc], "$position": position}
+        else:
+            push_spec = message_doc
+        result = await self.collection.update_one(
+            {"id": session_id, "is_deleted": {"$ne": True}},
+            {
+                "$push": {"messages": push_spec},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+                "$inc": {"version": 1},
+            },
+        )
+        return result.modified_count > 0
+
+    async def replace_last_message(self, session_id: str, message_doc: dict) -> bool:
+        """Replace the last message in a session (used for upload-with-replace).
+        Uses a targeted positional update to avoid full-document rewrite races."""
+        count_result = await self.collection.aggregate([
+            {"$match": {"id": session_id}},
+            {"$project": {"count": {"$size": "$messages"}}},
+        ]).to_list(1)
+        if not count_result or count_result[0]["count"] == 0:
+            return False
+        last_idx = count_result[0]["count"] - 1
+        result = await self.collection.update_one(
+            {"id": session_id, "is_deleted": {"$ne": True}},
+            {
+                "$set": {
+                    f"messages.{last_idx}": message_doc,
+                    "updated_at": datetime.now(timezone.utc),
+                },
+                "$inc": {"version": 1},
+            },
+        )
+        return result.modified_count > 0
+
     async def update_pin(
         self, session_id: str, is_pinned: bool, pinned_at: Optional[str] = None,
         user_id: Optional[str] = None
     ) -> bool:
-        """Update the pinned status of a session (bypasses optimistic locking)."""
+        """Update the pinned status of a session with version increment."""
         update_fields = {
             "is_pinned": is_pinned,
             "pinned_at": pinned_at,
@@ -325,7 +372,7 @@ class SessionRepository:
             query["user_id"] = user_id
         result = await self.collection.update_one(
             query,
-            {"$set": update_fields},
+            {"$set": update_fields, "$inc": {"version": 1}},
         )
         return result.modified_count > 0
 

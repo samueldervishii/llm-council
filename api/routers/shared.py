@@ -31,5 +31,10 @@ async def get_shared_session(
 
     # Strip sensitive fields for public access
     session.user_id = None
+    for msg in session.messages:
+        if msg.file:
+            msg.file.extracted_text = ""
+            msg.file.data_base64 = ""
+            msg.file.chunks = []  # Don't expose raw chunks publicly
 
     return SessionResponse(session=session, message="Shared session retrieved")

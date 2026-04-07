@@ -28,6 +28,9 @@ from schemas import (
     SessionListResponse,
     SessionSummary,
     SessionUpdateRequest,
+    Artifact,
+    ArtifactListResponse,
+    BranchRequest,
     ShareResponse,
     FeedbackCreate,
     FeedbackResponse,
@@ -203,8 +206,12 @@ async def continue_session(
 
     clean_question = sanitize_text(request.question, max_length=10000)
     user_message = Message(role="user", content=clean_question)
+
+    # Use targeted $push to avoid read-modify-write race with concurrent streams
+    saved = await repo.append_message(session_id, user_message.model_dump())
+    if not saved:
+        raise HTTPException(status_code=404, detail="Session not found or was deleted")
     session.messages.append(user_message)
-    await repo.update(session)
 
     return SessionResponse(
         session=session,
@@ -223,9 +230,10 @@ async def upload_file_to_session(
     _rate_limit: None = Depends(check_rate_limit),
 ):
     """Upload a file (PDF, DOCX, TXT) and add it as context to the conversation."""
+    import os
     import base64
-    from services.file_extractor import validate_file, extract_text
-    from schemas import FileAttachment
+    from services.file_extractor import validate_file, extract_text, chunk_text, extract_pdf_pages
+    from schemas import FileAttachment, SourceChunk
 
     session = await repo.get(session_id, user_id=user_id)
     if session is None:
@@ -244,29 +252,47 @@ async def upload_file_to_session(
         logger.exception(f"File extraction failed for {file.filename}")
         raise HTTPException(status_code=400, detail="Could not process this file. Please ensure it is a valid PDF, DOCX, or text file.")
 
+    # Build source chunks for citation-aware answers
+    ext = os.path.splitext(file.filename)[1].lower()
+    try:
+        pages = extract_pdf_pages(content) if ext == ".pdf" else None
+        chunk_dicts = chunk_text(extracted_text, file.filename, pages=pages)
+        chunks = [SourceChunk(**c) for c in chunk_dicts]
+    except Exception:
+        logger.debug(f"Chunking failed for {file.filename}, proceeding without chunks")
+        chunks = []
+
     attachment = FileAttachment(
         filename=file.filename,
         content_type=file.content_type,
         size=len(content),
         extracted_text=extracted_text,
         data_base64=base64.b64encode(content).decode("ascii"),
+        chunks=chunks,
     )
 
     raw_text = question.strip() if question.strip() else f"I've uploaded a file: {file.filename}. Please analyze it."
     user_text = sanitize_text(raw_text, max_length=10000)
     user_message = Message(role="user", content=user_text, file=attachment)
 
-    # If replace_last is true, replace the last user message (used when creating session + uploading file)
+    # Use targeted MongoDB operations to avoid read-modify-write races
     if replace_last == "true" and session.messages:
         last_msg = session.messages[-1]
         if last_msg.role == "user" and not last_msg.file:
+            saved = await repo.replace_last_message(session_id, user_message.model_dump())
+            if not saved:
+                raise HTTPException(status_code=404, detail="Session not found or was deleted")
             session.messages[-1] = user_message
         else:
+            saved = await repo.append_message(session_id, user_message.model_dump())
+            if not saved:
+                raise HTTPException(status_code=404, detail="Session not found or was deleted")
             session.messages.append(user_message)
     else:
+        saved = await repo.append_message(session_id, user_message.model_dump())
+        if not saved:
+            raise HTTPException(status_code=404, detail="Session not found or was deleted")
         session.messages.append(user_message)
-
-    await repo.update(session)
 
     return SessionResponse(
         session=_strip_file_data(session),
@@ -284,16 +310,16 @@ async def stream_response(
     _rate_limit: None = Depends(check_rate_limit),
 ):
     """Stream AI response via Server-Sent Events."""
-    # Per-user usage limits: daily cap + cooldown between messages
-    user_usage.check(user_id)
-    user_usage.record(user_id)
-
     session = await repo.get(session_id, user_id=user_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
     if not session.messages:
         raise HTTPException(status_code=400, detail="No messages in session")
+
+    # Per-user usage limits: check/record AFTER validating the session exists
+    user_usage.check(user_id)
+    user_usage.record(user_id)
 
     # Get the last user message
     last_user_msg = None
@@ -304,6 +330,12 @@ async def stream_response(
 
     if not last_user_msg:
         raise HTTPException(status_code=400, detail="No user message to respond to")
+
+    # Record where the assistant reply should be inserted.
+    # If a concurrent continue/upload appends a new user message while the
+    # stream is running, $position ensures the reply lands right after the
+    # user message it is responding to, not at the very end.
+    reply_position = len(session.messages)
 
     # Detect if user wants a document/artifact generated
     # Must match a VERB + DOCUMENT TYPE pattern, not just any keyword
@@ -319,24 +351,59 @@ async def stream_response(
     has_doc_type = any(d in user_text_lower for d in _doc_types)
     is_artifact = has_verb and has_doc_type
 
-    # Build the question — include file content if attached
+    # Collect ALL file chunks across the entire conversation for citation-aware prompting.
+    # This ensures follow-up questions about an earlier upload still get structured citations.
+    all_chunks = []
+    for msg in session.messages:
+        if msg.file and msg.file.chunks:
+            all_chunks.extend(msg.file.chunks)
+    has_chunks = len(all_chunks) > 0
+
+    # Build the question — include file content if the current message has a file
     question_text = last_user_msg.content
     if last_user_msg.file and last_user_msg.file.extracted_text:
-        question_text = (
-            f"{last_user_msg.content}\n\n"
-            f"--- Attached File: {last_user_msg.file.filename} ---\n"
-            f"{last_user_msg.file.extracted_text}"
-        )
+        if last_user_msg.file.chunks:
+            chunk_sections = []
+            for chunk in last_user_msg.file.chunks:
+                label = f"[{chunk.id}]"
+                if chunk.page:
+                    label = f"[{chunk.id}, page {chunk.page}]"
+                chunk_sections.append(f"{label}\n{chunk.text}")
+            question_text = (
+                f"{last_user_msg.content}\n\n"
+                f"--- Source: {last_user_msg.file.filename} ---\n"
+                + "\n\n".join(chunk_sections)
+            )
+        else:
+            question_text = (
+                f"{last_user_msg.content}\n\n"
+                f"--- Attached File: {last_user_msg.file.filename} ---\n"
+                f"{last_user_msg.file.extracted_text}"
+            )
 
     # Build conversation history (all messages except the last user message)
+    # For file messages in history, include chunks with labels so the model can cite them
     history = []
     for msg in session.messages[:-1]:
         msg_content = msg.content
-        # Include file text in history too so the model has full context
         if msg.file and msg.file.extracted_text:
-            msg_content = f"{msg.content}\n\n--- Attached File: {msg.file.filename} ---\n{msg.file.extracted_text}"
+            if msg.file.chunks:
+                chunk_sections = []
+                for chunk in msg.file.chunks:
+                    label = f"[{chunk.id}]"
+                    if chunk.page:
+                        label = f"[{chunk.id}, page {chunk.page}]"
+                    chunk_sections.append(f"{label}\n{chunk.text}")
+                msg_content = (
+                    f"{msg.content}\n\n"
+                    f"--- Source: {msg.file.filename} ---\n"
+                    + "\n\n".join(chunk_sections)
+                )
+            else:
+                msg_content = f"{msg.content}\n\n--- Attached File: {msg.file.filename} ---\n{msg.file.extracted_text}"
         history.append({"role": msg.role, "content": msg_content})
 
+    # Build system prompt — add citation instructions when file chunks are available
     system_prompt = (
         "You are Cortex, a helpful AI assistant. "
         "When the user asks you to write, create, or generate a document (essay, thesis, report, letter, etc.), "
@@ -344,6 +411,14 @@ async def stream_response(
         "For normal questions and conversations, respond naturally and conversationally. "
         "Use markdown code blocks with language tags for code snippets."
     )
+    if has_chunks:
+        system_prompt += (
+            "\n\nThe user has uploaded a file whose content is provided as labeled source chunks. "
+            "When your answer draws on specific parts of the file, cite the source chunk by appending "
+            "a reference like [source: chunk-id] at the end of the relevant sentence or paragraph. "
+            "For example: 'The study found a 15% increase [source: report-page-3].' "
+            "Only cite chunks you actually reference. Do not fabricate chunk IDs."
+        )
 
     async def event_stream():
         import json as _json
@@ -383,8 +458,31 @@ async def stream_response(
                     except (ValueError, json.JSONDecodeError):
                         pass
 
-            # Save assistant message to session
+            # Save assistant message to session using targeted $push
+            # to avoid overwriting concurrent mutations (pin/rename/delete/share)
             if full_response:
+                # Parse citation references from the response using ALL file chunks
+                parsed_citations = []
+                if has_chunks:
+                    import re as _re
+                    from schemas import CitationRef
+                    # Build lookup from chunk ID to chunk data across all files
+                    chunk_map = {c.id: c for c in all_chunks}
+                    # Find all [source: chunk-id] references
+                    cited_ids = _re.findall(r'\[source:\s*([a-zA-Z0-9\-]+)\]', full_response)
+                    seen = set()
+                    for cid in cited_ids:
+                        if cid in seen or cid not in chunk_map:
+                            continue
+                        seen.add(cid)
+                        chunk = chunk_map[cid]
+                        parsed_citations.append(CitationRef(
+                            id=chunk.id,
+                            text=chunk.text[:300],  # Excerpt, not full chunk
+                            source=chunk.source,
+                            page=chunk.page,
+                        ))
+
                 assistant_msg = Message(
                     role="assistant",
                     content=full_response,
@@ -392,9 +490,28 @@ async def stream_response(
                     model_name=model_name,
                     response_time_ms=response_time_ms,
                     is_artifact=is_artifact,
+                    citations=parsed_citations,
                 )
-                session.messages.append(assistant_msg)
-                await repo.update(session)
+                msg_saved = await repo.append_message(session_id, assistant_msg.model_dump(), position=reply_position)
+
+                # Only create artifact if the message was actually persisted
+                if msg_saved and is_artifact and full_response.strip():
+                    import re as _title_re
+                    title_match = _title_re.match(r'^#+ (.+)', full_response)
+                    artifact_title = title_match.group(1) if title_match else "Generated Document"
+                    artifact_doc = {
+                        "id": str(uuid.uuid4()),
+                        "session_id": session_id,
+                        "message_index": reply_position,
+                        "title": artifact_title,
+                        "content": full_response,
+                        "created_at": datetime.now(timezone.utc).isoformat() + "Z",
+                    }
+                    try:
+                        db = repo.collection.database
+                        await db["artifacts"].insert_one(artifact_doc)
+                    except Exception:
+                        logger.debug(f"Failed to save artifact for session {session_id}")
 
         except Exception:
             logger.exception(f"Stream error for session {session_id}")
@@ -409,6 +526,30 @@ async def stream_response(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get("/{session_id}/artifacts", response_model=ArtifactListResponse)
+async def list_artifacts(
+    session_id: str,
+    repo: SessionRepository = Depends(get_session_repository),
+    user_id: str = Depends(get_current_user),
+):
+    """List all artifacts generated in a session."""
+    session = await repo.get(session_id, user_id=user_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    db = repo.collection.database
+    cursor = db["artifacts"].find(
+        {"session_id": session_id},
+        {"_id": 0},
+    ).sort("created_at", 1)
+
+    artifacts = []
+    async for doc in cursor:
+        artifacts.append(Artifact(**doc))
+
+    return ArtifactListResponse(artifacts=artifacts, count=len(artifacts))
 
 
 @router.get("/{session_id}/file/{message_index}")
@@ -540,6 +681,54 @@ async def unshare_session(
     session.shared_at = None
     await repo.update(session)
     return {"message": "Session sharing revoked"}
+
+
+@router.post("/{session_id}/branch", response_model=SessionResponse)
+async def branch_session(
+    session_id: str,
+    request: BranchRequest,
+    repo: SessionRepository = Depends(get_session_repository),
+    user_id: str = Depends(get_current_user),
+):
+    """Branch a new session from a specific message in an existing session.
+
+    Copies messages[0..message_index] into a new session. The original remains unchanged.
+    """
+    source = await repo.get(session_id, user_id=user_id)
+    if source is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if request.message_index >= len(source.messages):
+        raise HTTPException(status_code=400, detail="Message index out of range")
+
+    # Copy messages up to and including the selected index (full copy including file data)
+    branched_messages = [msg.model_copy() for msg in source.messages[: request.message_index + 1]]
+
+    # Derive title from original
+    branch_title = f"{source.title or 'Chat'} (branch)"
+
+    new_session_id = str(uuid.uuid4())
+    new_session = ChatSession(
+        id=new_session_id,
+        user_id=user_id,
+        title=sanitize_title(branch_title, max_length=200),
+        messages=branched_messages,
+    )
+    await repo.create(new_session)
+
+    # Copy artifact records for artifact messages included in the branch
+    db = repo.collection.database
+    source_artifacts = await db["artifacts"].find(
+        {"session_id": session_id, "message_index": {"$lte": request.message_index}},
+        {"_id": 0},
+    ).to_list(None)
+    if source_artifacts:
+        for art in source_artifacts:
+            art["id"] = str(uuid.uuid4())
+            art["session_id"] = new_session_id
+        await db["artifacts"].insert_many(source_artifacts)
+
+    return SessionResponse(session=_strip_file_data(new_session), message="Session branched successfully")
 
 
 @router.delete("s/all")
