@@ -75,6 +75,7 @@ class UserRepository:
             session_ids.append(doc["id"])
         if session_ids:
             await db["artifacts"].delete_many({"session_id": {"$in": session_ids}})
+            await db["sources"].delete_many({"session_id": {"$in": session_ids}})
         # Remove all user data
         await db["sessions"].delete_many({"user_id": user_id})
         await db["user_settings"].delete_many({"user_id": user_id})
