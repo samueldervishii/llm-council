@@ -38,6 +38,10 @@ const AuthContext = createContext<AuthContextType | null>(null)
 const TOKEN_KEY = 'cortex-access-token'
 const REFRESH_KEY = 'cortex-refresh-token'
 
+const SESSION_RETRY_INITIAL_MS = 4000
+const SESSION_RETRY_MAX_MS = 30000
+const SESSION_RETRY_BACKOFF = 1.5
+
 function userFromResponse(data: any): User {
   return {
     id: data.id,
@@ -49,6 +53,8 @@ function userFromResponse(data: any): User {
     personal_preferences: data.personal_preferences || '',
   }
 }
+
+type RestoreOutcome = 'authenticated' | 'network_unreachable' | 'unauthenticated'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -69,57 +75,109 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.clear()
     clearSessionCache()
     setUser(null)
+    setNetworkError(false)
   }, [])
 
-  // On mount, check if we have a valid token
-  useEffect(() => {
-    const init = async () => {
-      const token = localStorage.getItem(TOKEN_KEY)
-      if (!token) {
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        const res = await apiClient.get('/auth/me')
-        setUser(userFromResponse(res.data))
-      } catch (err: any) {
-        if (err?.isNetworkError) {
-          // Server unreachable — don't clear tokens, user may be offline
-          setNetworkError(true)
-        } else {
-          // Token expired — try refresh
-          const refreshToken = localStorage.getItem(REFRESH_KEY)
-          if (refreshToken) {
-            try {
-              const res = await apiClient.post('/auth/refresh', { refresh_token: refreshToken })
-              storeTokens(res.data.access_token, res.data.refresh_token)
-              const meRes = await apiClient.get('/auth/me')
-              setUser(userFromResponse(meRes.data))
-            } catch (refreshErr: any) {
-              if (refreshErr?.isNetworkError) {
-                setNetworkError(true)
-              } else {
-                clearTokens()
-              }
-            }
-          } else {
-            clearTokens()
-          }
-        }
-      } finally {
-        setIsLoading(false)
-      }
+  const restoreSession = useCallback(async (): Promise<RestoreOutcome> => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) {
+      setNetworkError(false)
+      return 'unauthenticated'
     }
 
-    init()
+    try {
+      const res = await apiClient.get('/auth/me')
+      setUser(userFromResponse(res.data))
+      setNetworkError(false)
+      return 'authenticated'
+    } catch (err: any) {
+      if (err?.isNetworkError) {
+        setNetworkError(true)
+        return 'network_unreachable'
+      }
+      const refreshToken = localStorage.getItem(REFRESH_KEY)
+      if (refreshToken) {
+        try {
+          const res = await apiClient.post('/auth/refresh', { refresh_token: refreshToken })
+          storeTokens(res.data.access_token, res.data.refresh_token)
+          const meRes = await apiClient.get('/auth/me')
+          setUser(userFromResponse(meRes.data))
+          setNetworkError(false)
+          return 'authenticated'
+        } catch (refreshErr: any) {
+          if (refreshErr?.isNetworkError) {
+            setNetworkError(true)
+            return 'network_unreachable'
+          }
+          clearTokens()
+          setUser(null)
+          setNetworkError(false)
+          return 'unauthenticated'
+        }
+      } else {
+        clearTokens()
+        setUser(null)
+        setNetworkError(false)
+        return 'unauthenticated'
+      }
+    }
   }, [])
+
+  // On mount, restore session from stored tokens (if any)
+  useEffect(() => {
+    let mounted = true
+    const run = async () => {
+      const token = localStorage.getItem(TOKEN_KEY)
+      if (!token) {
+        if (mounted) setIsLoading(false)
+        return
+      }
+      await restoreSession()
+      if (mounted) setIsLoading(false)
+    }
+    void run()
+    return () => {
+      mounted = false
+    }
+  }, [restoreSession])
+
+  // After bootstrap, keep retrying /auth/me with backoff while the API is unreachable
+  useEffect(() => {
+    if (isLoading || !networkError || user) return
+    if (!localStorage.getItem(TOKEN_KEY)) return
+
+    let cancelled = false
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    let delayMs = SESSION_RETRY_INITIAL_MS
+
+    const schedule = () => {
+      timeoutId = setTimeout(() => {
+        void (async () => {
+          if (cancelled) return
+          const outcome = await restoreSession()
+          if (cancelled) return
+          if (outcome === 'network_unreachable') {
+            delayMs = Math.min(Math.round(delayMs * SESSION_RETRY_BACKOFF), SESSION_RETRY_MAX_MS)
+            schedule()
+          }
+        })()
+      }, delayMs)
+    }
+
+    schedule()
+
+    return () => {
+      cancelled = true
+      if (timeoutId !== undefined) clearTimeout(timeoutId)
+    }
+  }, [isLoading, networkError, user, restoreSession])
 
   const login = async (email: string, password: string) => {
     const res = await apiClient.post('/auth/login', { email, password })
     storeTokens(res.data.access_token, res.data.refresh_token)
     const meRes = await apiClient.get('/auth/me')
     setUser(userFromResponse(meRes.data))
+    setNetworkError(false)
   }
 
   const register = async (email: string, password: string) => {
@@ -127,6 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     storeTokens(res.data.access_token, res.data.refresh_token)
     const meRes = await apiClient.get('/auth/me')
     setUser(userFromResponse(meRes.data))
+    setNetworkError(false)
   }
 
   const updateProfile = async (data: ProfileData) => {
@@ -157,6 +216,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearTokens()
     clearSessionCache()
     setUser(null)
+    setNetworkError(false)
   }
 
   return (

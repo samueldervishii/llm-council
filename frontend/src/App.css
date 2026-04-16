@@ -4647,58 +4647,6 @@ button.message-file-badge:hover {
   background: var(--accent-hover);
 }
 
-/* ── Network error screen ── */
-.network-error-screen {
-  min-height: 100vh;
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-primary);
-  padding: 2rem;
-}
-
-.network-error-card {
-  text-align: center;
-  max-width: 360px;
-}
-
-.network-error-card svg {
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-
-.network-error-card h2 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--heading-color);
-  margin: 0 0 0.5rem 0;
-}
-
-.network-error-card p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  margin: 0 0 1.5rem 0;
-}
-
-.network-error-card button {
-  padding: 0.6rem 1.5rem;
-  background: var(--heading-color);
-  color: var(--bg-primary);
-  border: none;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.network-error-card button:hover {
-  opacity: 0.88;
-}
-
 /* PWA Install Prompt */
 .pwa-install-prompt {
   position: fixed;

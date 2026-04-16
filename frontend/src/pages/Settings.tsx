@@ -1010,6 +1010,51 @@ function Settings() {
                     </div>
                   </a>
                 </div>
+                <div className="about-links-row">
+                  <Link to="/status" className="about-link-card">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M3 12h4l2-6 4 12 2-6h6" />
+                    </svg>
+                    <div>
+                      <strong>Status page</strong>
+                      <span>Check service health</span>
+                    </div>
+                  </Link>
+                  <a
+                    href="https://cortex-al.vercel.app/support.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="about-link-card"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <div>
+                      <strong>Support</strong>
+                      <span>Open help center</span>
+                    </div>
+                  </a>
+                </div>
 
                 <div
                   className="about-link-card about-keyboard-shortcuts-card"

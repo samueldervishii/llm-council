@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
 import versionData from '../../../version.json'
 
-export const API_BASE: string = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
+export const API_BASE: string = import.meta.env.VITE_API_BASE
 export const API_KEY: string = import.meta.env.VITE_API_KEY || ''
 export const FRONTEND_URL: string = import.meta.env.VITE_FRONTEND_URL || window.location.origin
 export const FRONTEND_VERSION: string = versionData.version
