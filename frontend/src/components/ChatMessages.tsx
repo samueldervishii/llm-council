@@ -3,6 +3,7 @@ import { apiClient } from '../config/api'
 import Message from './Message'
 import ChatInput from './ChatInput'
 import type { ChatInputHandle } from './ChatInput'
+import { useAuth } from '../contexts/AuthContext'
 
 interface FileInfo {
   filename: string
@@ -53,6 +54,10 @@ function ChatMessages({
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<ChatInputHandle>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
+  const { user } = useAuth() as any
+  const userDisplayName = user?.display_name || user?.username || user?.email || 'You'
+  const userInitial = (userDisplayName || '?')[0].toUpperCase()
+  const userAvatar = user?.avatar || null
 
   useEffect(() => {
     chatInputRef.current?.focus()
@@ -131,9 +136,12 @@ function ChatMessages({
           sessionId={sessionId}
           onBranch={stableOnBranch}
           citations={(msg as any).citations}
+          userAvatar={userAvatar}
+          userInitial={userInitial}
+          userDisplayName="You"
         />
       )),
-    [messages, sessionId, stableOnBranch]
+    [messages, sessionId, stableOnBranch, userAvatar, userInitial]
   )
 
   return (

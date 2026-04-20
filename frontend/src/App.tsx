@@ -13,6 +13,8 @@ import {
 } from './components'
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
 import useCouncil from './hooks/useCouncil'
+import { FRONTEND_URL } from './config/api'
+import { useToast } from './contexts/ToastContext'
 import './App.css'
 
 function App() {
@@ -126,9 +128,27 @@ function App() {
     setQuotedText('')
   }, [setQuotedText])
 
+  const { showToast } = useToast()
+
   // Get current session title for top bar
   const currentSession = sessions.find((s: any) => s.id === sessionId)
   const sessionTitle = currentSession?.title || currentSession?.question?.substring(0, 50) || ''
+
+  const handleShare = useCallback(async () => {
+    if (!sessionId) return
+    try {
+      const data = await shareSession(sessionId)
+      const url = `${FRONTEND_URL}/shared/${data.share_token}`
+      try {
+        await navigator.clipboard.writeText(url)
+        showToast('Share link copied to clipboard', 'success')
+      } catch {
+        showToast(url, 'info', 8000)
+      }
+    } catch {
+      showToast('Could not create share link', 'error')
+    }
+  }, [sessionId, shareSession, showToast])
 
   useEffect(() => {
     const runAutoDeleteCleanup = async () => {
@@ -251,12 +271,15 @@ function App() {
         <div className="chat-content">
           <TopBar
             onNewChat={handleNewChat}
+            onToggleSidebar={toggleSidebar}
             onToggleRightPanel={toggleRightPanel}
             rightPanelOpen={rightPanelOpen}
             hasSession={!!sessionId}
             sessionTitle={sessionTitle}
+            messageCount={messages.length}
             ghostMode={ghostMode}
             onToggleGhost={handleToggleGhost}
+            onShare={handleShare}
           />
           {isLoadingSession ? (
             <ChatSkeleton />

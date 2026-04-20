@@ -1589,7 +1589,7 @@
 /* Scroll to bottom button */
 .scroll-to-bottom {
   position: absolute;
-  bottom: 110px;
+  bottom: 160px;
   left: 50%;
   transform: translateX(-50%);
   width: 36px;
@@ -2839,18 +2839,9 @@ button.message-file-badge:hover {
   text-align: left;
 }
 
-.sidebar-nav-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
 .sidebar-nav-item svg {
   flex-shrink: 0;
   color: var(--text-muted);
-}
-
-.sidebar-nav-item:hover svg {
-  color: var(--text-primary);
 }
 
 .sidebar-nav-item span {
@@ -2867,10 +2858,6 @@ button.message-file-badge:hover {
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.15s;
-}
-
-.sidebar-nav-item:hover .sidebar-nav-shortcut {
-  opacity: 1;
 }
 
 .sidebar-divider {
@@ -3185,10 +3172,6 @@ button.message-file-badge:hover {
   align-items: center;
   justify-content: center;
   transition: color 0.2s;
-}
-
-.session-menu-btn:hover {
-  color: var(--text-primary);
 }
 
 .session-menu-dropdown {
@@ -6386,11 +6369,6 @@ button.message-file-badge:hover {
   box-shadow: none;
 }
 
-.sidebar-nav-item:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(88, 67, 39, 0.1);
-}
-
 .sidebar-nav-item-primary {
   background: rgba(184, 84, 44, 0.08);
   color: var(--text-primary);
@@ -6527,11 +6505,10 @@ button.message-file-badge:hover {
   width: 28px;
   height: 28px;
   border-radius: 10px;
-  margin-top: -20px;
 }
 
 .session-menu-btn:hover {
-  background: rgba(88, 67, 39, 0.06);
+  background: rgba(148, 148, 148, 0.06);
 }
 
 .load-more-btn {
@@ -6857,17 +6834,6 @@ button.message-file-badge:hover {
   transition: all 0.12s;
   font-family: inherit;
   white-space: nowrap;
-}
-
-.right-panel-tab:hover {
-  color: var(--text-secondary);
-  background: rgba(255, 250, 242, 0.5);
-}
-
-.right-panel-tab.active {
-  color: var(--text-primary);
-  background: rgba(255, 250, 242, 0.9);
-  box-shadow: 0 1px 3px rgba(50, 37, 17, 0.06);
 }
 
 .right-panel-tab svg {
@@ -7563,9 +7529,10 @@ button.message-file-badge:hover {
 /* ─── Welcome screen polish ─── */
 .welcome-screen {
   gap: 1.25rem;
-  padding: clamp(2rem, 4vw, 3.5rem) clamp(1.5rem, 5vw, 4rem);
+  padding: clamp(1.25rem, 4vw, 3.5rem) clamp(1.5rem, 5vw, 4rem);
   justify-content: center;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .welcome-center {
@@ -7593,9 +7560,9 @@ button.message-file-badge:hover {
   display: flex;
   flex-direction: column;
   gap: 0.02em;
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
-  line-height: 0.95;
-  letter-spacing: -0.055em;
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
 }
 
@@ -7880,6 +7847,66 @@ button.message-file-badge:hover {
   .welcome-suggestions {
     grid-template-columns: repeat(2, 1fr);
     max-width: 520px;
+  }
+}
+
+/* ─── Responsive: short-viewport laptops (e.g. 1366x768 Dell) ─── */
+@media (min-width: 769px) and (max-height: 820px) {
+  .welcome-screen {
+    gap: 0.75rem;
+    padding: 1rem clamp(1.5rem, 5vw, 4rem) 1rem;
+    justify-content: flex-start;
+  }
+
+  .welcome-center {
+    gap: 0.3rem;
+  }
+
+  .welcome-badge {
+    padding: 0.22rem 0.6rem;
+    font-size: 0.68rem;
+  }
+
+  .welcome-heading {
+    font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+    line-height: 1.04;
+  }
+
+  .welcome-subheading {
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .welcome-suggestions {
+    gap: 0.55rem;
+  }
+
+  .welcome-suggestion-card {
+    min-height: 0;
+    padding: 0.7rem 0.8rem;
+    border-radius: 14px;
+  }
+
+  .welcome-suggestion-eyebrow {
+    margin-bottom: 0.3rem;
+  }
+
+  .welcome-suggestion-title {
+    font-size: 0.88rem;
+  }
+
+  .welcome-suggestion-desc {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .welcome-toolbar-btn {
+    padding: 4px 8px;
+    font-size: 0.78rem;
+  }
+
+  .welcome-hint {
+    margin-top: 0.45rem;
   }
 }
 
@@ -8229,12 +8256,6 @@ button.message-file-badge:hover {
     transform 0.12s;
 }
 
-.sidebar-nav-item:hover,
-.sidebar-nav-item-primary:hover {
-  background: var(--ink-2);
-  color: var(--paper);
-}
-
 .sidebar-nav-item:active {
   transform: scale(0.99);
 }
@@ -8399,11 +8420,6 @@ button.message-file-badge:hover {
   transition:
     color 0.12s,
     background 0.12s;
-}
-
-.session-menu-btn:hover {
-  color: var(--ink);
-  background: var(--paper);
 }
 
 .session-menu-dropdown {
@@ -9133,7 +9149,6 @@ button.message-file-badge:hover {
 }
 
 .input-container::after {
-  content: 'Cortex can make mistakes. Verify anything load-bearing.';
   display: block;
   text-align: center;
   font-family: var(--font-mono);
@@ -9534,17 +9549,10 @@ button.message-file-badge:hover {
   margin-bottom: -1px;
 }
 
-.right-panel-tab:hover,
-.artifact-panel-tab:hover,
-.artifact-panel .panel-tab:hover {
-  color: var(--ink-2);
-}
-
 .right-panel-tab.active,
 .artifact-panel-tab.active,
 .artifact-panel .panel-tab.active {
   color: var(--ink);
-  border-bottom-color: var(--accent);
 }
 
 .right-panel-close,
@@ -9793,4 +9801,782 @@ button.message-file-badge:hover {
 }
 .fade-in {
   animation: cortex-fade-in 150ms ease-out;
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Top bar v2: session title + meta, share button, model selector pill
+ * ══════════════════════════════════════════════════════════════ */
+.top-bar-title-block {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.top-bar-title-block .top-bar-session-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 38vw;
+}
+
+.top-bar-session-meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  position: relative;
+  padding-left: 14px;
+  flex-shrink: 0;
+}
+
+.top-bar-session-meta::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--rule-2);
+  font-size: 14px;
+  line-height: 1;
+  top: 2px;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-bar-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-btn);
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.top-bar-share-btn span {
+  white-space: nowrap;
+}
+
+.top-bar-share-btn:hover {
+  background: var(--paper-2);
+  border-color: var(--rule-2);
+  color: var(--ink);
+}
+
+.top-bar-share-btn svg {
+  color: var(--ink-2);
+}
+
+/* Model selector — topbar variant (full name, bordered pill) */
+.model-selector.topbar {
+  position: relative;
+}
+
+.model-selector.topbar .model-selector-trigger {
+  height: 32px;
+  padding: 0 10px 0 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-btn);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+  max-width: 260px;
+  white-space: nowrap;
+}
+
+.model-selector.topbar .model-selector-trigger:hover {
+  background: var(--paper-2);
+  border-color: var(--rule-2);
+}
+
+.model-selector.topbar .model-selector-trigger .model-selector-img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Portalled dropdown: positioned via inline `position: fixed; top/bottom/left;
+ * width` styles set by the component so it escapes any `overflow: hidden`
+ * ancestors.
+ *
+ * The element also carries the legacy `.model-selector-dropdown` class, which
+ * hard-codes `position: absolute; bottom: calc(100% + 6px); right: 0;
+ * width: 260px`. Inline styles win for the properties React actually sets
+ * (position, top OR bottom, left, width) — but any property React leaves
+ * undefined falls back to the legacy rule, which for `drop-down` means a
+ * stray `bottom: calc(100% + 6px)` combined with the inline `top` stretches
+ * the dropdown into a thin horizontal pill.
+ *
+ * No `!important` needed: this ruleset is declared after `.model-selector-
+ * dropdown` and has equal specificity, so it wins the cascade. Inline styles
+ * on the component still override these, so `drop-up` can set `bottom`. */
+.model-selector-dropdown-portal {
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+  padding: 6px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-pop);
+  overflow-y: auto;
+  animation: dropdownFadeIn 120ms ease-out;
+}
+
+.model-selector-dropdown-portal.drop-down {
+  transform-origin: top right;
+}
+
+.model-selector-dropdown-portal.drop-up {
+  transform-origin: bottom right;
+}
+
+/* Option layout */
+.model-option-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.model-selector-option {
+  padding: 10px 12px;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.model-option-info {
+  gap: 4px;
+}
+
+.model-option-name {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+
+.model-option-desc {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.model-option-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+
+.model-option-badge.default {
+  background: var(--accent-light);
+  border-color: var(--accent-30);
+  color: var(--accent-dark);
+}
+
+.model-option-badge.max {
+  background: var(--paper-2);
+  border-color: var(--rule-2);
+  color: var(--ink);
+}
+
+.model-option-badge.fast {
+  background: var(--paper-2);
+  border-color: var(--rule-2);
+  color: var(--ink-2);
+}
+
+.model-option-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 7px;
+  box-shadow: 0 0 0 3px rgba(184, 84, 44, 0.1);
+}
+
+.model-selector-option.selected {
+  background: var(--paper-2);
+}
+
+.model-dropdown-footer {
+  padding: 10px 12px 6px;
+  margin-top: 4px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Chat input v2: slash hint, send hint with model, footer note
+ * ══════════════════════════════════════════════════════════════ */
+.input-actions-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-slash-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+  padding: 0 4px 0 2px;
+  user-select: none;
+  letter-spacing: 0.1em;
+}
+
+.input-send-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.input-send-hint-model {
+  color: var(--ink-2);
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.input-send-hint .shortcut-kbd {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border: 1px solid var(--rule-2);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink-2);
+  box-shadow: 0 1px 0 var(--rule-2);
+  line-height: 1.4;
+}
+
+.input-footer-note {
+  margin: 8px 0 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+/* Responsive: hide the send-hint label on narrow screens,
+ * keep the icon-only send button working. */
+@media (max-width: 720px) {
+  .input-send-hint span:not(.input-send-hint-model) {
+    display: none;
+  }
+  .input-send-hint-model {
+    font-size: 11px;
+  }
+  .input-slash-hint {
+    display: none;
+  }
+}
+
+/* Mobile / small tablet: collapse the top-bar right cluster aggressively so
+ * the session title + model selector + share all fit without wrapping. At
+ * these widths the ghost-mode and context-panel toggles are also rarely used
+ * in-session and they're still reachable from the command palette / artifact
+ * panel itself, so we hide them to free up horizontal space. */
+@media (max-width: 768px) {
+  .top-bar-share-btn span {
+    display: none;
+  }
+  .top-bar-share-btn {
+    width: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+  .top-bar-right {
+    gap: 6px;
+  }
+  .model-selector.topbar .model-selector-trigger {
+    max-width: 180px;
+    padding: 0 10px;
+  }
+  .model-selector.topbar .model-selector-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .top-bar-title-block .top-bar-session-title {
+    max-width: 40vw;
+  }
+  .top-bar-session-meta {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Free up even more space on phone widths: swap the full model name for
+   * its short form, and drop the ghost + context-panel toggles. */
+  /* .model-selector.topbar .model-selector-trigger {
+    max-width: 140px;
+  } */
+  .top-bar-right .top-bar-icon-btn {
+    display: none;
+  }
+  .top-bar-title-block .top-bar-session-title {
+    max-width: 38vw;
+  }
+}
+
+@media (max-width: 420px) {
+  /* On tiny phones, the session title gets in the way of the model pill.
+   * The sidebar lists the session title already, so hiding it here is safe. */
+  .top-bar-title-block {
+    display: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Sidebar usage meter + account footer (design parity)
+ * ══════════════════════════════════════════════════════════════ */
+.sidebar-usage {
+  margin: 4px 10px 0;
+  padding: 10px 10px 12px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-usage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sidebar-usage-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sidebar-usage-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sidebar-usage-bar {
+  position: relative;
+  height: 4px;
+  background: var(--rule);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sidebar-usage-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.35s ease-out;
+}
+
+.sidebar-usage-reset {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sidebar account trigger — email line and gear icon (replaces chevron) */
+.sidebar-account-email {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+  display: block;
+}
+
+.sidebar-account-settings {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  flex-shrink: 0;
+}
+
+.sidebar-account-settings:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Chat message layout — avatar + body (design parity)
+ * ══════════════════════════════════════════════════════════════
+ *
+ * Replaces the legacy right-aligned user bubble with the same
+ * left-aligned avatar-then-content layout used for assistant
+ * messages. Earlier rules in this file (around lines 666, 883, 1926)
+ * set `.message.user { align-items: flex-end; margin-left: auto;
+ * max-width: 70%; }` plus a tinted bubble on `.message.user
+ * .message-content`. These rules are declared later and intentionally
+ * override that bubble treatment.
+ *
+ * Artifact and error messages live inside `.message.assistant` /
+ * `.message.error` too. Artifacts get the same avatar row (see
+ * Message.tsx `message-artifact` wrapper). Errors keep the legacy
+ * single-block look — no avatar — which still renders correctly
+ * because flex-row with a single child just lays the content out
+ * normally.
+ */
+.message.user,
+.message.assistant {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+  margin-top: 1px;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.message-avatar-user {
+  background: var(--accent);
+  color: var(--paper);
+  text-transform: uppercase;
+}
+
+.message-avatar-cortex {
+  background: var(--ink);
+  color: var(--paper);
+}
+.message-avatar-cortex img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  /* Force the logo to white regardless of its source fill color:
+     `brightness(0)` collapses all channels to black, then `invert(1)`
+     flips black → white. */
+  filter: brightness(0) invert(1);
+}
+
+.message-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Header row: role label + optional model pill + response time. */
+.message .message-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px 0;
+  flex-wrap: wrap;
+}
+
+.message-role-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Case-preserve the model pill so it reads "Sonnet 4.6" rather than
+   "SONNET 4.6" — the old rule forced uppercase. */
+.message .message-header .model-name {
+  text-transform: none;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 11px;
+  padding: 2px 7px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+
+.message .message-header .response-time {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* User content: no bubble, no border — plain left-aligned text. */
+.message.user .message-content {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+  max-width: 100%;
+}
+
+.message.user .message-content p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--ink);
+  font-size: 14.5px;
+}
+
+/* Tighten the assistant body's left padding a touch — the avatar now
+ * provides the main visual anchor, so the accent rail sits closer to
+ * the text than in the old avatar-less layout. */
+.message.assistant .message-assistant-content {
+  padding-left: 14px;
+}
+
+/* User actions were previously right-aligned (they lived under the
+ * right-floated bubble). Now that user messages are left-aligned like
+ * the assistant's, keep the action buttons on the left too. */
+.message.user .message-actions {
+  justify-content: flex-start;
+}
+
+/* Mobile: use full width and shrink the avatars slightly. */
+@media (max-width: 768px) {
+  .message.user,
+  .message.assistant {
+    max-width: 100%;
+    gap: 10px;
+  }
+  .message-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+  .message.assistant .message-assistant-content {
+    padding-left: 12px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * Chat skeleton — design parity with the new avatar + body layout
+ * ══════════════════════════════════════════════════════════════
+ *
+ * The legacy skeleton rules (around line 4286) render the user row
+ * right-aligned as a tan bubble — matching the old chat bubble. Now
+ * that chat messages are left-aligned with a circular avatar + body,
+ * the loading state should preview the same shape. These rules are
+ * declared later and override the legacy layout.
+ */
+.chat-skeleton {
+  padding: 1.5rem 2rem;
+  gap: 2rem;
+  background: transparent;
+}
+
+.skeleton-message {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  animation: fadeIn 0.3s ease;
+}
+
+.skeleton-message .skeleton-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  order: 0;
+  margin-top: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 25%,
+    rgba(88, 67, 39, 0.06) 50%,
+    var(--paper-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Assistant body gets a subtle accent rail on the left, matching the
+ * live `.message.assistant .message-assistant-content::before` rail. */
+.skeleton-body-assistant {
+  position: relative;
+  padding-left: 14px;
+}
+.skeleton-body-assistant::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent-30);
+}
+
+.skeleton-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-label {
+  width: 52px;
+  height: 12px;
+  border-radius: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 25%,
+    rgba(88, 67, 39, 0.06) 50%,
+    var(--paper-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-pill {
+  width: 82px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 25%,
+    rgba(88, 67, 39, 0.06) 50%,
+    var(--paper-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Override the legacy `.skeleton-bubble` / `.skeleton-line` look: lines
+ * are now flat, full-width shimmer bars — no bubble, no background. */
+.skeleton-message .skeleton-line {
+  height: 14px;
+  width: 100%;
+  max-width: 640px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--paper-2) 25%,
+    rgba(88, 67, 39, 0.06) 50%,
+    var(--paper-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-message .skeleton-line-medium {
+  max-width: 520px;
+}
+.skeleton-message .skeleton-line-short {
+  max-width: 320px;
+}
+
+@media (max-width: 768px) {
+  .chat-skeleton {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+  .skeleton-message {
+    gap: 10px;
+  }
+  .skeleton-message .skeleton-avatar {
+    width: 26px;
+    height: 26px;
+  }
+  .skeleton-body-assistant {
+    padding-left: 12px;
+  }
+  .skeleton-message .skeleton-line,
+  .skeleton-message .skeleton-line-medium,
+  .skeleton-message .skeleton-line-short {
+    max-width: 100%;
+  }
 }

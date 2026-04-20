@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react'
-import ModelSelector from './ModelSelector'
+import { useSelectedModel } from './ModelSelector'
 import { CloudArrowUpIcon as Paperclip } from '@phosphor-icons/react/CloudArrowUp'
 
 const ALLOWED_TYPES = [
@@ -47,6 +47,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     const [attachedFile, setAttachedFile] = useState<File | null>(null)
     const [dragOver, setDragOver] = useState(false)
     const [fileError, setFileError] = useState('')
+    const selectedModel = useSelectedModel()
 
     useImperativeHandle(ref, () => ({
       focus: () => {
@@ -209,7 +210,9 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              attachedFile ? 'Add a message about this file...' : placeholder || 'Send a message...'
+              attachedFile
+                ? 'Add a message about this file...'
+                : placeholder || 'Ask Cortex anything. Type / for commands.'
             }
             rows={1}
             disabled={disabled}
@@ -217,15 +220,20 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
           />
 
           <div className="input-actions-row">
-            <button
-              className={`attach-btn ${centered ? 'attach-btn-centered' : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              title="Attach file (PDF, DOCX, TXT)"
-            >
-              <Paperclip size={18} weight="regular" />
-              {centered && <span>Attach file</span>}
-            </button>
+            <div className="input-actions-left">
+              <button
+                className={`attach-btn ${centered ? 'attach-btn-centered' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                title="Attach file (PDF, DOCX, TXT)"
+              >
+                <Paperclip size={18} weight="regular" />
+                {centered && <span>Attach file</span>}
+              </button>
+              <span className="input-slash-hint" aria-hidden="true">
+                /&nbsp;/
+              </span>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -235,7 +243,11 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             />
             <div className="input-actions-right">
               {centered && <span className="input-char-count">{remainingCharacters}/1000</span>}
-              <ModelSelector />
+              <span className="input-send-hint">
+                <span className="input-send-hint-model">{selectedModel.name}</span>
+                <kbd className="shortcut-kbd">↵</kbd>
+                <span>to send</span>
+              </span>
               <button
                 className="send-btn"
                 onClick={handleSend}
@@ -259,6 +271,10 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             </div>
           </div>
         </div>
+
+        <p className="input-footer-note">
+          Cortex can make mistakes. Verify anything load-bearing.
+        </p>
 
         {dragOver && (
           <div className="drop-overlay">

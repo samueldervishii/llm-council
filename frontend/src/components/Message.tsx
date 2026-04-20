@@ -35,6 +35,9 @@ interface MessageProps {
   isArtifact?: boolean
   onBranch?: (messageIndex: number) => void
   citations?: Citation[]
+  userAvatar?: string | null
+  userInitial?: string
+  userDisplayName?: string
 }
 
 export interface Citation {
@@ -56,6 +59,9 @@ function Message({
   isArtifact,
   onBranch,
   citations,
+  userAvatar,
+  userInitial = 'U',
+  userDisplayName = 'You',
 }: MessageProps) {
   const [copied, setCopied] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'positive' | 'negative' | null>(null)
@@ -135,50 +141,65 @@ function Message({
   if (role === 'user') {
     return (
       <div className="message user">
-        {file && (
-          <button
-            className="message-file-badge"
-            onClick={async () => {
-              if (!sessionId || messageIndex == null) return
-              try {
-                const token = getAccessToken()
-                const res = await fetch(`${API_BASE}/session/${sessionId}/file/${messageIndex}`, {
-                  headers: token ? { Authorization: `Bearer ${token}` } : {},
-                })
-                if (!res.ok) return
-                const blob = await res.blob()
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = file.filename
-                a.click()
-                URL.revokeObjectURL(url)
-              } catch (err) {
-                console.error('Download failed:', err)
-              }
-            }}
-            title="Download file"
-          >
-            <FileText size={13} />
-            {file.filename}
-          </button>
-        )}
-        <div className="message-content">
-          <p>{content}</p>
+        <div className="message-avatar message-avatar-user" aria-hidden="true">
+          {userAvatar ? (
+            <img src={userAvatar} alt="" />
+          ) : (
+            <span>{userInitial}</span>
+          )}
         </div>
-        <div className="message-actions">
-          <button className="message-action-btn" onClick={handleCopy} title="Copy">
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-          </button>
-          {onBranch && sessionId && (
+        <div className="message-body">
+          <div className="message-header">
+            <span className="message-role-label">{userDisplayName}</span>
+          </div>
+          {file && (
             <button
-              className="message-action-btn"
-              onClick={() => onBranch(messageIndex)}
-              title="Branch from here"
+              className="message-file-badge"
+              onClick={async () => {
+                if (!sessionId || messageIndex == null) return
+                try {
+                  const token = getAccessToken()
+                  const res = await fetch(
+                    `${API_BASE}/session/${sessionId}/file/${messageIndex}`,
+                    {
+                      headers: token ? { Authorization: `Bearer ${token}` } : {},
+                    }
+                  )
+                  if (!res.ok) return
+                  const blob = await res.blob()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = file.filename
+                  a.click()
+                  URL.revokeObjectURL(url)
+                } catch (err) {
+                  console.error('Download failed:', err)
+                }
+              }}
+              title="Download file"
             >
-              <GitBranch size={14} />
+              <FileText size={13} />
+              {file.filename}
             </button>
           )}
+          <div className="message-content">
+            <p>{content}</p>
+          </div>
+          <div className="message-actions">
+            <button className="message-action-btn" onClick={handleCopy} title="Copy">
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+            {onBranch && sessionId && (
+              <button
+                className="message-action-btn"
+                onClick={() => onBranch(messageIndex)}
+                title="Branch from here"
+              >
+                <GitBranch size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -201,8 +222,15 @@ function Message({
     const isEmpty = !content.trim()
 
     return (
-      <div className="message assistant">
-        <div className="artifact-card">
+      <div className="message assistant message-artifact">
+        <div className="message-avatar message-avatar-cortex" aria-hidden="true">
+          <img src="/logo.svg" alt="" />
+        </div>
+        <div className="message-body">
+          <div className="message-header">
+            <span className="message-role-label">Cortex</span>
+          </div>
+          <div className="artifact-card">
           <div className="artifact-header">
             <div className="artifact-title-row">
               <FileText size={16} />
@@ -241,6 +269,7 @@ function Message({
               </button>
             </div>
           )}
+          </div>
         </div>
       </div>
     )
@@ -249,13 +278,15 @@ function Message({
   // Normal assistant message
   return (
     <div className="message assistant">
-      <div className="message-assistant-content">
-        {modelName && (
-          <div className="message-header">
-            <span className="model-name">{modelName}</span>
-            {formattedTime && <span className="response-time">{formattedTime}</span>}
-          </div>
-        )}
+      <div className="message-avatar message-avatar-cortex" aria-hidden="true">
+        <img src="/logo.svg" alt="" />
+      </div>
+      <div className="message-body message-assistant-content">
+        <div className="message-header">
+          <span className="message-role-label">Cortex</span>
+          {modelName && <span className="model-name">{modelName}</span>}
+          {formattedTime && <span className="response-time">{formattedTime}</span>}
+        </div>
         <div className="message-content">
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSanitize]}>
             {content}

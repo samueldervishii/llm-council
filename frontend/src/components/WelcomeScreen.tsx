@@ -165,10 +165,6 @@ function WelcomeScreen({
           placeholder="Describe anything you need..."
           centered
         />
-        <p className="welcome-hint">
-          Press <kbd className="shortcut-kbd">Shift</kbd> +<kbd className="shortcut-kbd">?</kbd> to
-          open the command palette
-        </p>
       </div>
     </div>
   )

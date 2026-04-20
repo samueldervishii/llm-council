@@ -9,12 +9,30 @@ import { GearIcon as SettingsIcon } from '@phosphor-icons/react/Gear'
 import { DotsThreeCircleIcon as MoreVertical } from '@phosphor-icons/react/DotsThreeCircle'
 import { NotePencilIcon as SquarePen } from '@phosphor-icons/react/NotePencil'
 import { SignOutIcon as LogOut } from '@phosphor-icons/react/SignOut'
-import { CaretUpIcon as ChevronUp } from '@phosphor-icons/react/CaretUp'
 import { TextOutdentIcon as TextOutdent } from '@phosphor-icons/react/TextOutdent'
 import { TextIndentIcon as TextIndent } from '@phosphor-icons/react/TextIndent'
 import { FRONTEND_URL } from '../config/api'
 import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../contexts/AuthContext'
+import { useUsage } from '../contexts/UsageContext'
+
+// Must mirror api/services/usage_service.py LIMIT_TOKENS
+const USAGE_LIMIT_TOKENS = 200_000
+
+function formatSidebarTokens(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
+  return n.toLocaleString()
+}
+
+function formatResetWindow(seconds: number): string {
+  if (!seconds || seconds <= 0) return 'Ready to use'
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  if (hours >= 1) return `Resets in ${hours}h ${minutes}m`
+  if (minutes >= 1) return `Resets in ${minutes}m`
+  return `Resets in ${seconds}s`
+}
 
 interface Session {
   id: string
@@ -60,6 +78,7 @@ function Sidebar({
 }: SidebarProps) {
   const { showToast } = useToast()
   const { user, logout } = useAuth() as any
+  const { current: usageCurrent } = useUsage()
   const navigate = useNavigate()
   const [shareModal, setShareModal] = useState({ open: false, url: '', loading: false })
   const [deleteConfirm, setDeleteConfirm] = useState({
@@ -496,6 +515,38 @@ function Sidebar({
               )}
             </div>
 
+            {user &&
+              (() => {
+                const tokens = usageCurrent?.total_tokens || 0
+                const percent = Math.min(
+                  100,
+                  Math.max(0, (tokens / USAGE_LIMIT_TOKENS) * 100)
+                )
+                const hasBucket = !!(usageCurrent && usageCurrent.bucket_end)
+                return (
+                  <div className="sidebar-usage" aria-label="Usage">
+                    <div className="sidebar-usage-header">
+                      <span className="sidebar-usage-label">Usage</span>
+                      <span className="sidebar-usage-count">
+                        {formatSidebarTokens(tokens)} /{' '}
+                        {formatSidebarTokens(USAGE_LIMIT_TOKENS)}
+                      </span>
+                    </div>
+                    <div className="sidebar-usage-bar">
+                      <div
+                        className="sidebar-usage-bar-fill"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <span className="sidebar-usage-reset">
+                      {hasBucket
+                        ? formatResetWindow(usageCurrent!.resets_in_seconds)
+                        : 'Resets every 5 hours'}
+                    </span>
+                  </div>
+                )
+              })()}
+
             {user && (
               <div className="sidebar-account" ref={accountRef}>
                 {accountOpen && renderAccountDropdown()}
@@ -508,12 +559,33 @@ function Sidebar({
                   </div>
                   <div className="sidebar-account-copy">
                     <span className="sidebar-account-name">{displayName}</span>
-                    <span className="sidebar-account-role">Workspace</span>
+                    {user.email && (
+                      <span className="sidebar-account-email">{user.email}</span>
+                    )}
                   </div>
-                  <ChevronUp
-                    size={14}
-                    className={`sidebar-account-chevron ${accountOpen ? 'open' : ''}`}
-                  />
+                  <span
+                    className="sidebar-account-settings"
+                    role="button"
+                    tabIndex={0}
+                    title="Settings"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setAccountOpen(false)
+                      navigate('/settings')
+                      onCloseMobile?.()
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setAccountOpen(false)
+                        navigate('/settings')
+                        onCloseMobile?.()
+                      }
+                    }}
+                  >
+                    <SettingsIcon size={14} />
+                  </span>
                 </button>
               </div>
             )}

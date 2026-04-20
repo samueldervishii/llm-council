@@ -1566,13 +1566,24 @@
   box-shadow: 0 1px 0 var(--rule);
 }
 
+/* Card-style containers keep the outer border + rounded corners.
+   `.settings-section` is a flat grouping of fields — it should NOT carry
+   its own border or background, otherwise it paints a redundant thin
+   rectangle around Security, Delete account, Preferences, etc. on top of
+   the already-bordered form controls inside. */
 .settings-card,
 .settings-block,
-.settings-section,
 .settings-panel {
   background: var(--paper);
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
+}
+
+.settings-section {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .settings-label,
