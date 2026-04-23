@@ -1104,7 +1104,7 @@ main,
 .footer-bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 1rem;
   flex-wrap: wrap;
   padding-top: 1.5rem;
@@ -1113,21 +1113,9 @@ main,
   color: var(--text-muted);
 }
 
-.footer-copy,
-.footer-made {
+.footer-copy {
   font-size: 0.84rem;
   color: var(--text-muted);
-}
-
-.footer-made a {
-  color: var(--text-secondary);
-  border-bottom: 1px dashed rgba(26, 22, 19, 0.18);
-  transition: color 0.18s ease, border-color 0.18s ease;
-}
-
-.footer-made a:hover {
-  color: var(--accent-color);
-  border-bottom-color: var(--accent-color);
 }
 
 .about-hero {
@@ -1420,13 +1408,19 @@ main,
   }
 
   .footer-cols {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, auto));
+    justify-content: center;
+    gap: 1.5rem 2rem;
   }
 
   .footer-col {
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     gap: 0.5rem;
+  }
+
+  .footer-col a {
+    width: auto;
   }
 
   .footer-col h4 {
