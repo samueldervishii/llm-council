@@ -59,134 +59,96 @@
 
     <div class="article-hero">
       <h1>Privacy Policy</h1>
-      <p class="subtitle">Effective April 8, 2026</p>
+      <p class="subtitle">Effective April 23, 2026</p>
     </div>
 
     <div class="article-content">
       <p>
-        This Privacy Policy explains what information Cortex collects, how that
-        information is used, and what controls are available to you when using
-        the product.
+        Cortex is a small research and writing workspace I built to help
+        students and researchers get work done with Claude. This page is the
+        plain-English version of what ends up on the server when you use it
+        and what your options are for cleaning that up later.
       </p>
 
-      <h2>What Cortex Collects</h2>
-      <p>Cortex collects information needed to run the service, including:</p>
-      <ul>
-        <li>
-          <strong>Account information</strong> &mdash; Your email address,
-          hashed password, and any profile data you choose to add such as
-          display name, username, field of work, avatar, and personal
-          preferences.
-        </li>
-        <li>
-          <strong>Conversation data</strong> &mdash; Messages, generated
-          outputs, titles, pinned state, sharing state, and related session
-          metadata.
-        </li>
-        <li>
-          <strong>Uploaded content</strong> &mdash; Files you upload, extracted
-          text, and chunked source data used to help Cortex answer questions
-          about those materials.
-        </li>
-        <li>
-          <strong>Settings data</strong> &mdash; Preferences such as
-          auto-delete choices and other account-level settings.
-        </li>
-        <li>
-          <strong>Technical and security data</strong> &mdash; Basic logs,
-          request metadata, rate-limit events, and authentication events needed
-          to operate, secure, and troubleshoot the service.
-        </li>
-      </ul>
-
-      <h2>Browser Storage</h2>
+      <h2>What gets stored</h2>
       <p>
-        Cortex stores certain data locally in your browser to keep the product
-        functional and convenient. This may include access tokens, refresh
-        tokens, sidebar and UI preferences, and other small client-side state.
+        When you sign up, Cortex keeps the basics: an email, a password
+        (saved as a salted hash, never the plain one), and whatever profile
+        details you add later so responses feel a little closer to your
+        voice.
       </p>
-
-      <h2>How Cortex Uses Data</h2>
-      <ul>
-        <li>To create and secure user accounts</li>
-        <li>To generate responses and maintain conversation history</li>
-        <li>To process uploaded files and support source-aware answers</li>
-        <li>To personalize output using your saved profile preferences</li>
-        <li>To power sharing, export, and document-generation features</li>
-        <li>To detect abuse, enforce rate limits, and keep the platform reliable</li>
-        <li>To diagnose bugs and improve the product</li>
-      </ul>
-
-      <h2>When Data Is Shared</h2>
       <p>
-        Cortex does not sell your personal data. Information may be shared only
-        in limited cases necessary to run the service:
+        Anything you type or upload during a conversation stays with that
+        session so you can come back to it, pin it, or share it. If you
+        would rather not keep it around, you can delete sessions by hand
+        or turn on auto-delete so older ones fade out on a schedule.
       </p>
-      <ul>
-        <li>
-          <strong>AI processing</strong> &mdash; Prompts and relevant uploaded
-          content may be sent to Anthropic so the model can generate responses.
-        </li>
-        <li>
-          <strong>Infrastructure providers</strong> &mdash; Hosting, database,
-          and delivery providers may process data on Cortex's behalf depending
-          on how the deployment is hosted.
-        </li>
-        <li>
-          <strong>Shared sessions</strong> &mdash; If you enable a share link,
-          anyone with that link can view the shared session in read-only form.
-        </li>
-        <li>
-          <strong>Legal or safety reasons</strong> &mdash; Data may be disclosed
-          if required to comply with law, enforce terms, or protect users and
-          the service.
-        </li>
-      </ul>
 
-      <h2>Data Retention and Control</h2>
+      <h2>Your browser keeps a little, too</h2>
       <p>
-        Cortex keeps your data for as long as it is needed to provide the
-        service, unless you remove it sooner.
+        Sign-in tokens and a couple of layout preferences &mdash; things like
+        whether the sidebar is collapsed &mdash; live in your browser so the
+        app does not forget you between page loads.
       </p>
+
+      <h2>Where your data goes</h2>
+      <p>
+        Prompts and the relevant parts of your sessions are sent to
+        Anthropic so Claude can answer them. That part is unavoidable for an
+        AI product. Beyond that, Cortex runs on standard cloud hosting and a
+        database, and those providers only handle what they need to keep the
+        service online. Nothing is sold, rented, or handed off to marketers.
+      </p>
+      <p>
+        If you turn on a share link, anyone with that link can read the
+        shared session. It is the one moment where a conversation becomes
+        visible outside your account, and you can revoke the link from the
+        session menu whenever you want.
+      </p>
+
+      <h2>Cleaning up after yourself</h2>
       <ul>
-        <li>You can delete sessions from the product interface.</li>
+        <li>Delete any session from the sidebar.</li>
         <li>
-          You can configure optional auto-delete windows for older sessions.
+          Set an auto-delete window in Settings so older sessions clear
+          themselves out.
         </li>
         <li>
-          You can export your chat data in JSON or Markdown and export document
-          outputs as DOCX.
+          Export your chats as JSON or Markdown, or pull a finished document
+          out as DOCX.
         </li>
         <li>
-          You can delete your account, which removes the account record and
-          associated user data stored for the hosted service.
+          Delete the whole account, which clears the account record and
+          what is tied to it on the hosted service.
         </li>
       </ul>
 
       <h2>Security</h2>
       <p>
-        Cortex uses practical security controls such as bcrypt password
-        hashing, JWT-based authentication, rate limiting, file validation, and
-        access controls around user data. No system can guarantee absolute
-        security, so you should avoid uploading information that you would not
-        want processed by an online service.
+        Passwords are hashed with bcrypt, sessions use signed tokens, file
+        uploads are checked before they land, and rate limits sit in front
+        of the API to keep abuse in check. No online service is bulletproof
+        though &mdash; if something is genuinely sensitive, think twice before
+        handing it to any AI tool, Cortex included.
       </p>
 
-      <h2>Children's Privacy</h2>
+      <h2>Under 13s</h2>
       <p>
-        Cortex is intended for students, researchers, and professional users. It
-        is not designed specifically for children under 13.
+        Cortex is aimed at students, researchers, and professionals. It is
+        not designed for children under 13, and accounts should not be
+        created on their behalf.
       </p>
 
-      <h2>Changes to This Policy</h2>
+      <h2>If this page changes</h2>
       <p>
-        Cortex may update this Privacy Policy from time to time. The effective
-        date at the top of the page will be updated when changes are posted.
+        Small updates happen from time to time. When they do, the effective
+        date at the top of this page changes with them.
       </p>
 
       <div class="article-divider"></div>
       <p>
-        Questions about privacy can be raised through
+        Questions, concerns, or a mistake you spotted? The fastest way to
+        reach me is
         <a
           href="https://github.com/samueldervishii/cortex"
           target="_blank"
