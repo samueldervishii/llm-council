@@ -6266,7 +6266,7 @@ button.message-file-badge:hover {
 .sidebar {
   flex-shrink: 0;
   height: 100%;
-  padding: 0;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   background: transparent;
   border-right: none;
   transition:
