@@ -2757,8 +2757,6 @@ button.message-file-badge:hover {
     height: 100dvh;
     z-index: 101;
     animation: slideIn 0.2s ease;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -6266,7 +6264,7 @@ button.message-file-badge:hover {
 .sidebar {
   flex-shrink: 0;
   height: 100%;
-  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  padding: 0;
   background: transparent;
   border-right: none;
   transition:
@@ -7956,6 +7954,8 @@ button.message-file-badge:hover {
   .sidebar-shell {
     border-radius: 0 16px 16px 0;
     border-left: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Overlay: opaque enough to focus on the sidebar */
