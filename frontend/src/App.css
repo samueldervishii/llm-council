@@ -10691,8 +10691,8 @@ html[data-theme='dark'] .message-content {
 
 html[data-theme='dark'] .message.user,
 html[data-theme='dark'] .message-user .message-bubble {
-  background: rgba(244, 236, 223, 0.06);
-  border-color: var(--rule);
+  background: transparent;
+  border-color: transparent;
 }
 
 html[data-theme='dark'] .welcome-screen,
@@ -11160,8 +11160,8 @@ html[data-theme='dark'] .model-selector-dropdown {
 
 /* ─── Messages ─── */
 html[data-theme='dark'] .message.user .message-content {
-  background: var(--paper-2);
-  border-color: var(--rule-2);
+  background: transparent;
+  border-color: transparent;
   color: var(--text-primary);
 }
 
