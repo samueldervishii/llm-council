@@ -679,7 +679,7 @@ function useCouncil() {
         }
       }
 
-      markdown += `\n*Exported from Cortex*`
+      markdown += `\n*Exported from Étude*`
 
       const blob = new Blob([markdown], { type: 'text/markdown' })
       const url = URL.createObjectURL(blob)

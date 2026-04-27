@@ -1,0 +1,422 @@
+/*
+ * ChatsPage — full-page chat list.
+ * All colors come from CSS variables defined in index.css so light/dark
+ * themes (data-theme="dark") are supported with no extra rules.
+ */
+
+.chats-page {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  color: var(--text-primary);
+  -webkit-overflow-scrolling: touch;
+}
+
+.chats-page-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+.chats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.chats-title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.chats-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.05s ease;
+}
+
+.chats-new-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.chats-new-btn:active {
+  transform: translateY(1px);
+}
+
+/* ── Search ─────────────────────────────────────────────────────────── */
+
+.chats-search {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--rule);
+  margin-bottom: 1.5rem;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.chats-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(184, 84, 44, 0.12);
+}
+
+.chats-search svg {
+  color: var(--ink-2);
+  flex-shrink: 0;
+}
+
+.chats-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.chats-search input::placeholder {
+  color: var(--ink-2);
+  opacity: 0.85;
+}
+
+.chats-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.chats-search-clear:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+/* ── Toolbar (default + select mode) ────────────────────────────────── */
+
+.chats-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.25rem 0.85rem;
+}
+
+.chats-toolbar-label {
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+
+.chats-select-toggle {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+}
+
+.chats-select-toggle:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.chats-select-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chats-toolbar.select {
+  padding: 0.45rem 0.4rem;
+  gap: 0.6rem;
+}
+
+.chats-selected-count {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.chats-toolbar-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.chats-toolbar-action:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+.chats-toolbar-action.danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.chats-toolbar-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chats-toolbar-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  margin-left: 0.25rem;
+}
+
+.chats-toolbar-close:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+/* ── Checkbox ───────────────────────────────────────────────────────── */
+
+.chats-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1.5px solid var(--rule-2);
+  background: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+  color: #fff;
+  padding: 0;
+}
+
+.chats-checkbox:hover {
+  border-color: var(--accent);
+}
+
+.chats-checkbox.checked,
+.chats-checkbox.indeterminate {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.chats-checkbox.row {
+  cursor: default;
+}
+
+/* ── List ───────────────────────────────────────────────────────────── */
+
+.chats-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.chats-row {
+  border-bottom: 1px solid var(--rule);
+  transition: background 0.12s ease;
+}
+
+.chats-row:hover {
+  background: var(--bg-hover);
+}
+
+.chats-row.selected {
+  background: rgba(184, 84, 44, 0.08);
+}
+
+html[data-theme='dark'] .chats-row.selected {
+  background: rgba(201, 106, 69, 0.15);
+}
+
+.chats-row-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.95rem 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.chats-row.select-mode .chats-row-link {
+  cursor: pointer;
+}
+
+.chats-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.chats-row-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chats-row-meta {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+.chats-row-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chats-row:hover .chats-row-delete,
+.chats-row-delete:focus-visible {
+  opacity: 1;
+}
+
+.chats-row-delete:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+/* On touch screens, hover doesn't fire — show the delete button always. */
+@media (hover: none) {
+  .chats-row-delete {
+    opacity: 1;
+  }
+}
+
+.chats-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+/* ── Show more ──────────────────────────────────────────────────────── */
+
+.chats-show-more {
+  display: block;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--rule);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.chats-show-more:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+.chats-show-more:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .chats-page-inner {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .chats-title {
+    font-size: 1.6rem;
+  }
+
+  .chats-new-btn span {
+    display: none;
+  }
+
+  .chats-new-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .chats-row-link {
+    padding: 0.85rem 0.4rem;
+  }
+
+  .chats-row-delete {
+    opacity: 1;
+  }
+}

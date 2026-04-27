@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Release notes — Étude</title>
+    <meta
+      name="description"
+      content="Release notes for Étude — a calm AI workspace for thinking, writing, and research."
+    />
+    <link rel="icon" type="image/png" href="assets/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .release-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin: 1.5rem 0 0;
+      }
+
+      .release-card {
+        padding: 1.6rem 1.75rem;
+        border-radius: 18px;
+        background: rgba(250, 250, 247, 0.92);
+        border: 1px solid rgba(26, 22, 19, 0.08);
+      }
+
+      .release-card.is-latest {
+        border-color: rgba(184, 84, 44, 0.3);
+        box-shadow: 0 1px 0 rgba(184, 84, 44, 0.08);
+      }
+
+      .release-head {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.6rem 0.85rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .release-version {
+        font-family: 'Fraunces', serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--text-color, #1a1613);
+        margin: 0;
+      }
+
+      .release-date {
+        font-size: 0.85rem;
+        color: var(--text-muted, #6b6258);
+      }
+
+      .release-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.18rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        background: rgba(26, 22, 19, 0.06);
+        color: var(--text-muted, #6b6258);
+      }
+
+      .release-tag.latest {
+        background: rgba(184, 84, 44, 0.12);
+        color: var(--accent-color, #b8542c);
+      }
+
+      .release-tag.stable {
+        background: rgba(34, 139, 84, 0.12);
+        color: #2e7d52;
+      }
+
+      .release-summary {
+        margin: 0.25rem 0 1rem;
+        color: var(--text-muted, #4d4640);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .release-section-title {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted, #6b6258);
+        margin: 0.85rem 0 0.4rem;
+      }
+
+      .release-card ul {
+        margin: 0;
+        padding-left: 1.15rem;
+      }
+
+      .release-card li {
+        font-size: 0.95rem;
+        line-height: 1.65;
+        margin-bottom: 0.25rem;
+      }
+
+      .release-meta-row {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(26, 22, 19, 0.08);
+        font-size: 0.85rem;
+        color: var(--text-muted, #6b6258);
+        flex-wrap: wrap;
+      }
+
+      .release-meta-row a {
+        color: var(--accent-color, #b8542c);
+        text-decoration: none;
+      }
+
+      .release-meta-row a:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      @media (max-width: 640px) {
+        .release-card {
+          padding: 1.3rem 1.2rem;
+        }
+        .release-version {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.png" alt="" />
+        <span>Étude</span>
+      </a>
+      <div class="nav-links">
+        <a href="about.html">About</a>
+        <a href="personalization.html">Help</a>
+        <a href="support.html">Support</a>
+        <span class="nav-divider" aria-hidden="true"></span>
+        <a
+          href="https://github.com/samueldervishii/cortex"
+          class="nav-icon"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path
+              d="M12 .5C5.73.5.67 5.57.67 11.84c0 5.02 3.25 9.27 7.76 10.77.57.1.78-.25.78-.55 0-.27-.01-1.16-.02-2.1-3.16.69-3.82-1.35-3.82-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.52-.29-5.18-1.26-5.18-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.14 1.16.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.18-1.47 3.14-1.16 3.14-1.16.62 1.57.23 2.73.11 3.02.73.79 1.17 1.8 1.17 3.04 0 4.35-2.67 5.31-5.2 5.59.41.35.77 1.04.77 2.11 0 1.52-.01 2.75-.01 3.12 0 .3.21.66.79.55 4.5-1.5 7.75-5.75 7.75-10.77C23.33 5.57 18.27.5 12 .5z"
+            />
+          </svg>
+        </a>
+        <a href="https://cortex-al-app.vercel.app/login" class="nav-cta">
+          Open Étude
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <line x1="4" y1="8" x2="20" y2="8" />
+          <line x1="4" y1="16" x2="20" y2="16" />
+        </svg>
+      </button>
+    </nav>
+
+    <div class="article-hero">
+      <h1>Release notes</h1>
+      <p class="subtitle">What's new in Étude, from oldest to newest.</p>
+    </div>
+
+    <div class="article-content">
+      <p>
+        Étude is built in the open. Every change shipped to production is summarized below. For the
+        full diff of any release, follow the GitHub link at the bottom of each entry.
+      </p>
+
+      <div class="release-list">
+        <!-- v1.0.0 — Stable, current -->
+        <article class="release-card is-latest" id="v1-0-0">
+          <header class="release-head">
+            <h2 class="release-version">v1.0.0</h2>
+            <span class="release-date">April 27, 2026</span>
+            <span class="release-tag latest">Latest</span>
+            <span class="release-tag stable">Stable</span>
+          </header>
+          <p class="release-summary">
+            First stable release. The product graduates from Cortex (preview) into
+            <strong>Étude</strong> — new name, new mark, and a unified typographic system.
+            Underneath, this is the v0.2 polish hardened: a real dark mode, a stable PWA
+            install, mobile UX fixes across the surface, the new Chats page, and a tightened
+            auth flow.
+          </p>
+
+          <p class="release-section-title">Rebrand &amp; visual identity</p>
+          <ul>
+            <li>
+              <strong>New name</strong> — Cortex is now Étude. The new mark replaces the
+              previous logo across the web app, the marketing site, and the PWA install
+              surfaces.
+            </li>
+            <li>
+              <strong>One typographic system</strong> — every surface (app and site) now
+              sets in Fraunces. The previous mix of Inter, JetBrains Mono, and ad-hoc
+              system stacks is gone; the Google Fonts request was trimmed accordingly so
+              first paint is a touch lighter.
+            </li>
+            <li>
+              A few identifiers — the GitHub repo, the Vercel subdomains, the support
+              email, and saved-session storage keys — keep their <code>cortex</code>
+              name on purpose. Renaming any of those would either break working systems
+              or sign people out.
+            </li>
+          </ul>
+
+          <p class="release-section-title">Highlights</p>
+          <ul>
+            <li>
+              <strong>Stable PWA install</strong> on iOS and Android, with proper status-bar
+              handling on iOS so the top bar and sidebar no longer collide with the notch.
+            </li>
+            <li>
+              <strong>Full dark mode</strong> — rebuilt palette, fixed sidebar and welcome
+              surfaces, and patched the user bubble so it reads cleanly on both themes.
+            </li>
+            <li>
+              <strong>Mobile UX pass</strong> across settings, the top bar, the welcome screen, and
+              the sidebar hamburger nav.
+            </li>
+            <li>
+              <strong>New Chats page</strong> with bulk select and a confirm-before-delete flow,
+              reachable from the sidebar.
+            </li>
+            <li>
+              <strong>Auth hardening</strong>: fixed a cold-start path that briefly let unauthenticated
+              users land on protected screens.
+            </li>
+            <li>
+              <strong>Refreshed website</strong> aligned with the in-app terracotta paper palette,
+              plus updated copy.
+            </li>
+          </ul>
+
+          <p class="release-section-title">Maintenance</p>
+          <ul>
+            <li>Bumped <code>python-dotenv</code> from 1.2.1 to 1.2.2.</li>
+          </ul>
+
+          <div class="release-meta-row">
+            <a
+              href="https://github.com/samueldervishii/cortex/releases/tag/v1.0.0"
+              target="_blank"
+              rel="noopener noreferrer"
+              >View on GitHub</a
+            >
+            <a
+              href="https://github.com/samueldervishii/cortex/commits/v1.0.0"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Full changelog</a
+            >
+          </div>
+        </article>
+
+        <!-- v0.2 — Preview -->
+        <article class="release-card" id="v0-2">
+          <header class="release-head">
+            <h2 class="release-version">v0.2</h2>
+            <span class="release-date">April 2026</span>
+            <span class="release-tag">Preview</span>
+          </header>
+          <p class="release-summary">
+            The preview release. Most of v1.0's polish landed here first — this is where the mobile
+            and theme work was originally introduced and where the auth fix was shipped.
+          </p>
+
+          <p class="release-section-title">What's changed</p>
+          <ul>
+            <li>Mobile nav hamburger now actually opens and closes the sidebar.</li>
+            <li>Mobile UX fixes for settings, top bar, and welcome screen.</li>
+            <li>Landing site aligned with the frontend's paper + terracotta palette.</li>
+            <li>Refreshed website copy.</li>
+            <li>Reserved space for the iOS status bar in the top bar and sidebar.</li>
+            <li>Swapped logo across the app and website.</li>
+            <li>Dark mode for the PWA, including a fix for the iOS status bar on /status.</li>
+            <li>Rebuilt the dark-mode palette and patched sidebar/welcome surfaces.</li>
+            <li>Removed the white halo behind the mobile welcome input and cleaned the user bubble.</li>
+            <li>Fixed the dark-mode user bubble and a cold-start auth bypass.</li>
+            <li>Bumped <code>python-dotenv</code> from 1.2.1 to 1.2.2.</li>
+          </ul>
+
+          <div class="release-meta-row">
+            <a
+              href="https://github.com/samueldervishii/cortex/commits/v0.2"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Full changelog</a
+            >
+          </div>
+        </article>
+      </div>
+
+      <div class="article-divider"></div>
+      <p>
+        Looking for something older or unreleased? Browse
+        <a
+          href="https://github.com/samueldervishii/cortex/commits/main"
+          target="_blank"
+          rel="noopener noreferrer"
+          >main on GitHub</a
+        >
+        for the full commit history, or
+        <a
+          href="https://github.com/samueldervishii/cortex/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          >open an issue</a
+        >
+        if something looks off.
+      </p>
+      <p>
+        <a href="index.html">Back to home</a>
+      </p>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand-col">
+            <a href="index.html" class="footer-brand">
+              <img src="assets/logo.png" alt="" />
+              <span>Étude</span>
+            </a>
+            <p class="footer-tagline">
+              A calmer AI workspace for students, researchers, and anyone who would rather be
+              writing than wrestling with tools.
+            </p>
+            <a
+              href="https://cortex-al-app.vercel.app/status"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="footer-status"
+            >
+              <span class="footer-status-dot" aria-hidden="true"></span>
+              All systems normal
+            </a>
+          </div>
+          <div class="footer-cols">
+            <div class="footer-col">
+              <h4>Product</h4>
+              <a href="index.html">Overview</a>
+              <a href="personalization.html">Help</a>
+              <a href="https://cortex-al-app.vercel.app/login">Open app</a>
+            </div>
+            <div class="footer-col">
+              <h4>Resources</h4>
+              <a href="about.html">About</a>
+              <a href="support.html">Support</a>
+              <a href="release.html">Release notes</a>
+              <a
+                href="https://github.com/samueldervishii/cortex"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitHub</a
+              >
+            </div>
+            <div class="footer-col">
+              <h4>Legal</h4>
+              <a href="privacy-policy.html">Privacy</a>
+              <a href="terms-of-service.html">Terms</a>
+              <a href="usage-policy.html">Usage policy</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span class="footer-copy">&copy; 2026 Étude</span>
+        </div>
+      </div>
+    </footer>
+    <script src="assets/nav.js" defer></script>
+  </body>
+</html>

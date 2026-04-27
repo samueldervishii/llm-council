@@ -13,6 +13,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 // Lazy load pages - only load when needed
 const App = lazy(() => import('./App'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const ChatsPage = lazy(() => import('./pages/ChatsPage'))
 const SharedSession = lazy(() => import('./pages/SharedSession'))
 const StatusPage = lazy(() => import('./pages/StatusPage'))
 const AuthPage = lazy(() => import('./pages/AuthPage'))
@@ -44,6 +45,7 @@ createRoot(document.getElementById('root')!).render(
                     >
                       <Route path="/" element={<App />} />
                       <Route path="/sessions/:sessionId" element={<App />} />
+                      <Route path="/chats" element={<ChatsPage />} />
                       <Route path="/settings" element={<SettingsPage />} />
                     </Route>
                     {/* 404 */}

@@ -588,7 +588,7 @@
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 3px;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-family: var(--font-serif);
   font-size: 0.65rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -2439,7 +2439,7 @@ button.message-file-badge:hover {
   padding: 0.15rem 0.35rem;
   border-radius: 4px;
   font-size: 0.88em;
-  font-family: 'Fira Code', 'Monaco', monospace;
+  font-family: var(--font-serif);
 }
 
 .message-content pre {
@@ -2841,6 +2841,8 @@ button.message-file-badge:hover {
   cursor: pointer;
   transition: background 0.12s;
   text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .sidebar-nav-item svg {
@@ -6672,7 +6674,7 @@ button.message-file-badge:hover {
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--text-secondary);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6685,14 +6687,14 @@ button.message-file-badge:hover {
 .sidebar-rail-session:hover,
 .sidebar-rail-profile:hover {
   background: rgba(255, 255, 255, 0.82);
-  color: var(--text-primary);
+  color: white;
 }
 
 .sidebar-rail-btn-primary,
 .sidebar-rail-session.active {
   background: rgba(184, 84, 44, 0.1);
   border-color: rgba(184, 84, 44, 0.12);
-  color: var(--text-primary);
+  color: white;
 }
 
 .sidebar-collapsed-sessions {
@@ -8184,7 +8186,7 @@ button.message-file-badge:hover {
 .chat-app {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 14px;
 }
 
@@ -8192,7 +8194,7 @@ button.message-file-badge:hover {
 .sidebar {
   background: var(--paper);
   border-right: 1px solid var(--rule);
-  font-family: var(--font-sans);
+  font-family: inherit;
 }
 
 .sidebar-brand {
@@ -8230,7 +8232,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-logo-subtitle {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -8266,7 +8268,7 @@ button.message-file-badge:hover {
   border: 1px solid transparent;
   background: var(--ink);
   color: var(--paper);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   display: flex;
@@ -8323,7 +8325,7 @@ button.message-file-badge:hover {
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   color: var(--ink);
   width: 100%;
@@ -8339,7 +8341,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-search-hint {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -8365,7 +8367,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-section-header {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   font-weight: 400;
   text-transform: uppercase;
@@ -8417,7 +8419,7 @@ button.message-file-badge:hover {
 }
 
 .session-name {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   color: var(--ink-2);
   line-height: 1.35;
@@ -8429,7 +8431,7 @@ button.message-file-badge:hover {
 }
 
 .session-date {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -8455,7 +8457,7 @@ button.message-file-badge:hover {
 }
 
 .session-menu-dropdown > button {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   color: var(--ink-2);
   background: transparent;
@@ -8481,7 +8483,7 @@ button.message-file-badge:hover {
 }
 
 .load-more-btn {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   background: transparent;
@@ -8501,7 +8503,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-empty {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.02em;
@@ -8548,7 +8550,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-account-name {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
@@ -8556,7 +8558,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-account-role {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.04em;
@@ -8579,7 +8581,7 @@ button.message-file-badge:hover {
 }
 
 .sidebar-account-item {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   color: var(--ink-2);
   background: transparent;
@@ -8685,7 +8687,7 @@ a.sidebar-account-item {
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-btn);
-  color: var(--muted);
+  color: white;
   padding: 8px;
   display: flex;
   align-items: center;
@@ -8777,7 +8779,7 @@ a.sidebar-account-item {
 }
 
 .top-bar-ghost-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -8833,13 +8835,13 @@ a.sidebar-account-item {
 
 /* ── Messages ──────────────────────────────────────────────── */
 .message {
-  font-family: var(--font-sans);
+  font-family: inherit;
   margin-bottom: 2.25rem;
 }
 
 .message.user .message-content p,
 .message.user .message-content {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 14.5px;
   line-height: 1.7;
   color: var(--ink);
@@ -8848,7 +8850,7 @@ a.sidebar-account-item {
 .message-assistant-content .message-content,
 .message.assistant .message-content,
 .message.assistant .message-content p {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 14px;
   line-height: 1.68;
   color: var(--ink);
@@ -8879,7 +8881,7 @@ a.sidebar-account-item {
 }
 
 .message-assistant-content .message-content code:not(pre code) {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 12.5px;
   padding: 1px 5px;
   background: var(--paper-2);
@@ -8891,7 +8893,7 @@ a.sidebar-account-item {
   background: var(--paper-2);
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 12.5px;
 }
 
@@ -8904,12 +8906,12 @@ a.sidebar-account-item {
 }
 
 .message-header {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   color: var(--muted);
   font-size: 10.5px;
 }
 .message-header .model-name {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   color: var(--muted);
   background: var(--paper-2);
@@ -8920,12 +8922,12 @@ a.sidebar-account-item {
   text-transform: uppercase;
 }
 .message-header .response-time {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   color: var(--muted);
 }
 
 .message-file-badge {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   background: rgba(244, 241, 234, 0.6);
   border: 1px solid var(--rule);
@@ -8965,7 +8967,7 @@ a.sidebar-account-item {
   color: #9a2a1c;
   border-radius: var(--radius-card);
   padding: 12px 14px;
-  font-family: var(--font-sans);
+  font-family: inherit;
 }
 
 /* Streaming caret */
@@ -9008,7 +9010,7 @@ a.sidebar-account-item {
   padding-top: 10px;
 }
 .citations-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9016,7 +9018,7 @@ a.sidebar-account-item {
   margin-bottom: 6px;
 }
 .citation-chip {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--ink-2);
   background: var(--paper-2);
@@ -9040,7 +9042,7 @@ a.sidebar-account-item {
   border-radius: var(--radius-card);
   padding: 10px 12px;
   margin-top: 8px;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   color: var(--ink-2);
 }
@@ -9069,7 +9071,7 @@ a.sidebar-account-item {
   color: var(--ink);
 }
 .artifact-generating {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9079,7 +9081,7 @@ a.sidebar-account-item {
 .artifact-body {
   padding: 12px 14px;
   background: var(--paper);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13.5px;
   line-height: 1.65;
   color: var(--ink);
@@ -9098,7 +9100,7 @@ a.sidebar-account-item {
   background: var(--paper);
 }
 .artifact-btn {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12px;
   color: var(--ink-2);
   background: transparent;
@@ -9157,7 +9159,7 @@ a.sidebar-account-item {
 .input-wrapper textarea,
 .input-container textarea {
   background: transparent;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 14px;
   line-height: 1.55;
   color: var(--ink);
@@ -9191,14 +9193,14 @@ a.sidebar-account-item {
 .attach-btn.attach-btn-centered {
   width: auto;
   padding: 0 10px;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   gap: 6px;
 }
 
 .send-btn {
   background: var(--accent);
-  color: var(--paper);
+  color: white;
   border: none;
   border-radius: var(--radius-btn);
   width: 32px;
@@ -9219,14 +9221,14 @@ a.sidebar-account-item {
 }
 .send-btn:disabled {
   background: var(--paper-2);
-  color: var(--muted);
+  color: white;
   border: 1px solid var(--rule);
   box-shadow: none;
   cursor: not-allowed;
 }
 
 .input-char-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   transition: color 0.15s;
@@ -9251,7 +9253,7 @@ html[data-theme='dark'] .input-char-count.over {
 .input-container::after {
   display: block;
   text-align: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   color: var(--muted);
   margin-top: 8px;
@@ -9268,17 +9270,17 @@ html[data-theme='dark'] .input-char-count.over {
   border-radius: var(--radius-btn);
 }
 .file-card-name {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   color: var(--ink);
 }
 .file-card-meta {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   color: var(--muted);
 }
 .file-card-badge {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   background: var(--accent-light);
   color: var(--accent-dark);
@@ -9299,7 +9301,7 @@ html[data-theme='dark'] .input-char-count.over {
   background: var(--paper-2);
   border: 1px solid var(--rule);
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
 }
 .quote-pill-bar {
@@ -9310,7 +9312,7 @@ html[data-theme='dark'] .input-char-count.over {
   background: var(--error-bg);
   border: 1px solid var(--error-border);
   color: #9a2a1c;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
 }
 
@@ -9318,7 +9320,7 @@ html[data-theme='dark'] .input-char-count.over {
   background: rgba(250, 250, 247, 0.9);
   border: 2px dashed var(--accent-30);
   color: var(--accent-dark);
-  font-family: var(--font-sans);
+  font-family: inherit;
   border-radius: var(--radius-card);
 }
 
@@ -9331,7 +9333,7 @@ html[data-theme='dark'] .input-char-count.over {
   background: var(--paper-2);
   border: 1px solid var(--rule);
   color: var(--ink-2);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -9363,7 +9365,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .welcome-subheading {
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink-2);
   line-height: 1.55;
 }
@@ -9388,7 +9390,7 @@ html[data-theme='dark'] .input-char-count.over {
   transform: translateY(-1px);
 }
 .welcome-suggestion-eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -9405,14 +9407,14 @@ html[data-theme='dark'] .input-char-count.over {
   color: var(--ink);
 }
 .welcome-suggestion-desc {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   line-height: 1.5;
   color: var(--ink-2);
 }
 
 .welcome-toolbar-btn {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   color: var(--ink-2);
   background: transparent;
@@ -9433,13 +9435,13 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .welcome-hint {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   text-align: center;
 }
 .welcome-hint .shortcut-kbd {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   padding: 1px 5px;
   border: 1px solid var(--rule-2);
@@ -9458,7 +9460,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 .welcome-ghost-sub,
 .welcome-ghost-footer {
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink-2);
 }
 
@@ -9476,13 +9478,13 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-pop);
-  font-family: var(--font-sans);
+  font-family: inherit;
   overflow: hidden;
 }
 .command-palette-input,
 .cmd-palette-search input {
   background: transparent;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 14.5px;
   color: var(--ink);
 }
@@ -9493,7 +9495,7 @@ html[data-theme='dark'] .input-char-count.over {
 
 .command-palette-section,
 .cmd-palette-section-title {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -9504,7 +9506,7 @@ html[data-theme='dark'] .input-char-count.over {
 .cmd-palette-item {
   border-radius: var(--radius-btn);
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13.5px;
 }
 .command-palette-item:hover,
@@ -9536,7 +9538,7 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-pop);
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink);
 }
 .delete-modal h3,
@@ -9561,7 +9563,7 @@ html[data-theme='dark'] .input-char-count.over {
   justify-content: center;
 }
 .delete-cancel {
-  font-family: var(--font-sans);
+  font-family: inherit;
   background: var(--paper);
   border: 1px solid var(--rule);
   color: var(--ink-2);
@@ -9573,7 +9575,7 @@ html[data-theme='dark'] .input-char-count.over {
   color: var(--ink);
 }
 .delete-confirm {
-  font-family: var(--font-sans);
+  font-family: inherit;
   background: #b91c1c;
   color: var(--paper);
   border: none;
@@ -9587,7 +9589,7 @@ html[data-theme='dark'] .input-char-count.over {
   background: var(--paper-2);
   border: 1px solid var(--rule);
   color: var(--ink-2);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 12px;
   border-radius: var(--radius-input);
 }
@@ -9596,7 +9598,7 @@ html[data-theme='dark'] .input-char-count.over {
   color: var(--paper);
   border: none;
   border-radius: var(--radius-btn);
-  font-family: var(--font-sans);
+  font-family: inherit;
   padding: 8px 14px;
 }
 .share-url-container button:hover {
@@ -9608,7 +9610,7 @@ html[data-theme='dark'] .input-char-count.over {
 .artifact-panel {
   background: var(--paper);
   border-left: 1px solid var(--rule);
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink);
 }
 
@@ -9617,7 +9619,7 @@ html[data-theme='dark'] .input-char-count.over {
 .artifact-panel-topbar {
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
-  font-family: var(--font-sans);
+  font-family: inherit;
 }
 
 .right-panel-tab-strip,
@@ -9632,7 +9634,7 @@ html[data-theme='dark'] .input-char-count.over {
 .right-panel-tab,
 .artifact-panel-tab,
 .artifact-panel .panel-tab {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   color: var(--muted);
   background: transparent;
@@ -9679,7 +9681,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .right-panel-empty {
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--muted);
   padding: 40px 20px;
   text-align: center;
@@ -9688,7 +9690,7 @@ html[data-theme='dark'] .input-char-count.over {
   color: var(--rule-2);
 }
 .right-panel-hint {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--muted);
@@ -9701,7 +9703,7 @@ html[data-theme='dark'] .input-char-count.over {
   gap: 4px;
 }
 .right-panel-item {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   color: var(--ink-2);
   background: var(--paper);
@@ -9733,7 +9735,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .right-panel-artifact-body {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13.5px;
   line-height: 1.65;
   color: var(--ink);
@@ -9753,7 +9755,7 @@ html[data-theme='dark'] .input-char-count.over {
   margin-bottom: 10px;
 }
 .right-panel-toolbar button {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12px;
   background: transparent;
   border: 1px solid var(--rule);
@@ -9778,7 +9780,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 .rp-section-label,
 .rp-preview-meta-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -9791,7 +9793,7 @@ html[data-theme='dark'] .input-char-count.over {
   margin: 8px 0 12px;
 }
 .rp-preview-meta-item {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   color: var(--ink-2);
   display: flex;
@@ -9799,7 +9801,7 @@ html[data-theme='dark'] .input-char-count.over {
   gap: 2px;
 }
 .rp-preview-text {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   line-height: 1.6;
   color: var(--ink-2);
@@ -9812,7 +9814,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .rp-source-badge {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -9830,7 +9832,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .artifact-panel-footer {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   border-top: 1px solid var(--rule);
@@ -9852,7 +9854,7 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-pop);
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink);
 }
 .shortcuts-modal h2,
@@ -9877,7 +9879,7 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-pop);
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink);
 }
 .feedback-modal h2,
@@ -9892,7 +9894,7 @@ html[data-theme='dark'] .input-char-count.over {
 /* ── Utility: kbd chips inside sidebar use paper palette ─── */
 .sidebar-nav-shortcut,
 .sidebar-search-hint {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
 }
 
 /* ── Motion utilities (applied via class names used above) ─ */
@@ -9922,7 +9924,7 @@ html[data-theme='dark'] .input-char-count.over {
 }
 
 .top-bar-session-meta {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -9959,7 +9961,7 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-btn);
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
@@ -9997,7 +9999,7 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-btn);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   gap: 8px;
@@ -10028,7 +10030,7 @@ html[data-theme='dark'] .input-char-count.over {
   border: 1px solid var(--rule);
   border-radius: var(--radius-btn);
   color: var(--ink-2);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: default;
@@ -10111,7 +10113,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .model-option-desc {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 12px;
   color: var(--ink-2);
 }
@@ -10123,7 +10125,7 @@ html[data-theme='dark'] .top-bar-model-locked {
   border-radius: 4px;
   background: var(--paper-2);
   border: 1px solid var(--rule);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -10168,7 +10170,7 @@ html[data-theme='dark'] .top-bar-model-locked {
   padding: 10px 12px 6px;
   margin-top: 4px;
   border-top: 1px solid var(--rule);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   letter-spacing: 0.04em;
   color: var(--muted);
@@ -10188,7 +10190,7 @@ html[data-theme='dark'] .top-bar-model-locked {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 13px;
   color: var(--muted);
   padding: 0 4px 0 2px;
@@ -10200,7 +10202,7 @@ html[data-theme='dark'] .top-bar-model-locked {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -10213,7 +10215,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .input-send-hint .shortcut-kbd {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   padding: 1px 5px;
   border: 1px solid var(--rule-2);
@@ -10227,7 +10229,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 .input-footer-note {
   margin: 8px 0 0;
   text-align: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.01em;
@@ -10323,7 +10325,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .sidebar-usage-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -10332,7 +10334,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .sidebar-usage-count {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
@@ -10354,7 +10356,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .sidebar-usage-reset {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 11px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -10362,7 +10364,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 
 /* Sidebar account trigger — email line and gear icon (replaces chevron) */
 .sidebar-account-email {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 11px;
   color: var(--muted);
   line-height: 1.15;
@@ -10440,7 +10442,7 @@ html[data-theme='dark'] .top-bar-model-locked {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 600;
   line-height: 1;
@@ -10490,7 +10492,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .message-role-label {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
@@ -10502,7 +10504,7 @@ html[data-theme='dark'] .top-bar-model-locked {
    "Haiku 4.5" rather than the all-caps version the old rule forced. */
 .message .message-header .model-name {
   text-transform: none;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-weight: 500;
   font-size: 11px;
   padding: 2px 7px;
@@ -10514,7 +10516,7 @@ html[data-theme='dark'] .top-bar-model-locked {
 }
 
 .message .message-header .response-time {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
 }

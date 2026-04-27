@@ -94,7 +94,7 @@ function ChatMessages({
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `cortex-chat.docx`
+      a.download = `etude-chat.docx`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

@@ -5,7 +5,7 @@
   min-height: 100dvh;
   display: flex;
   background: var(--paper);
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink);
 }
 
@@ -45,9 +45,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-btn);
-  background: var(--ink);
   padding: 4px;
-  filter: brightness(1.4) saturate(0);
 }
 
 .auth-brand-name {
@@ -69,7 +67,7 @@
 }
 
 .auth-subtitle {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 1.02rem;
   color: var(--ink-2);
   line-height: 1.55;
@@ -654,19 +652,13 @@
   }
 }
 
-/* ── Paper redesign overrides (auth) ─────────────────────── */
-
-.auth-page * {
-  font-family: var(--font-sans);
-}
-
 .auth-tabs {
   background: var(--paper-2);
   border: 1px solid var(--rule);
   border-radius: var(--radius-btn);
 }
 .auth-tab {
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--muted);
   border-radius: calc(var(--radius-btn) - 2px);
 }
@@ -677,7 +669,7 @@
 }
 
 .auth-field label {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -690,7 +682,7 @@
   border: 1px solid var(--rule);
   border-radius: var(--radius-input);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: inherit;
   padding: 0.7rem 0.85rem;
 }
 .auth-field input:focus {
@@ -702,7 +694,7 @@
   background: var(--accent);
   color: var(--paper);
   border-radius: var(--radius-btn);
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-weight: 600;
   letter-spacing: -0.005em;
   box-shadow: 0 1px 0 rgba(26, 22, 19, 0.08);
@@ -726,7 +718,7 @@
   border: 1px solid var(--error-border);
   color: #9a2a1c;
   border-radius: var(--radius-btn);
-  font-family: var(--font-sans);
+  font-family: inherit;
 }
 
 .auth-link {
@@ -745,5 +737,5 @@
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-pop);
-  font-family: var(--font-sans);
+  font-family: inherit;
 }

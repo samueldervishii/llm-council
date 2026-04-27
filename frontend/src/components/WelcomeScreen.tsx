@@ -111,7 +111,7 @@ function WelcomeScreen({
       <div className="welcome-center">
         <div className="welcome-badge">
           <Sparkle size={14} />
-          Cortex workspace
+          Étude workspace
         </div>
         <h1 className="welcome-heading">
           <span className="welcome-heading-static">Hi there, {firstName}</span>

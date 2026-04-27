@@ -119,8 +119,8 @@ function AuthPage() {
         <div className="auth-left-content">
           <div className="auth-brand">
             <div className="auth-brand-row">
-              <img src="/IMG_6935.png" alt="" className="auth-logo" />
-              <span className="auth-brand-name">Cortex</span>
+              <img src="/logo.png" alt="" className="auth-logo" />
+              <span className="auth-brand-name">Étude</span>
             </div>
             <h1 className="auth-headline">
               Your mind,
@@ -316,7 +316,7 @@ function AuthPage() {
             </div>
           </div>
           <div className="auth-preview-input">
-            <span className="auth-preview-input-text">Ask Cortex anything...</span>
+            <span className="auth-preview-input-text">Ask Étude anything...</span>
             <span className="auth-preview-input-arrow">&#8593;</span>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { MagnifyingGlassIcon as SearchIcon } from '@phosphor-icons/react/Magnify
 import { GearIcon as SettingsIcon } from '@phosphor-icons/react/Gear'
 import { DotsThreeCircleIcon as MoreVertical } from '@phosphor-icons/react/DotsThreeCircle'
 import { NotePencilIcon as SquarePen } from '@phosphor-icons/react/NotePencil'
+import { ChatsIcon } from '@phosphor-icons/react/Chats'
 import { SignOutIcon as LogOut } from '@phosphor-icons/react/SignOut'
 import { TextOutdentIcon as TextOutdent } from '@phosphor-icons/react/TextOutdent'
 import { TextIndentIcon as TextIndent } from '@phosphor-icons/react/TextIndent'
@@ -371,7 +372,7 @@ function Sidebar({
           </a>
           <a
             className="sidebar-account-item"
-            href="https://github.com/samueldervishii/cortex/releases"
+            href="https://cortex-al.vercel.app/release.html"
             target="_blank"
             rel="noopener noreferrer"
             onClick={closeAccountMenu}
@@ -520,10 +521,10 @@ function Sidebar({
             <>
               <div className="sidebar-brand-main">
                 <div className="sidebar-logo">
-                  {/* <img src="/IMG_6935.png" alt="Cortex" className="sidebar-logo-icon" /> */}
+                  {/* <img src="/logo.png" alt="Étude" className="sidebar-logo-icon" /> */}
                   <div className="sidebar-logo-copy">
                     <span className="sidebar-logo-title">
-                      Cortex - <span className="sidebar-logo-subtitle">Research workspace</span>
+                      Étude - <span className="sidebar-logo-subtitle">Research workspace</span>
                     </span>
                   </div>
                 </div>
@@ -534,7 +535,7 @@ function Sidebar({
             </>
           ) : (
             <button className="sidebar-collapsed-logo-btn" onClick={onClose} title="Open sidebar">
-              <img src="/IMG_6935.png" alt="Cortex" className="sidebar-logo-icon logo-default" />
+              <img src="/logo.png" alt="Étude" className="sidebar-logo-icon logo-default" />
               <TextIndent size={18} className="logo-hover-icon" />
             </button>
           )}
@@ -554,6 +555,10 @@ function Sidebar({
                 <span>New chat</span>
                 <kbd className="sidebar-nav-shortcut">Alt+N</kbd>
               </button>
+              <Link to="/chats" className="sidebar-nav-item" onClick={() => onCloseMobile?.()}>
+                <ChatsIcon size={16} />
+                <span>Chats</span>
+              </Link>
             </div>
 
             <div className="sidebar-search-card">
@@ -687,6 +692,14 @@ function Sidebar({
               >
                 <SquarePen size={17} />
               </button>
+              <Link
+                to="/chats"
+                className="sidebar-rail-btn"
+                title="All chats"
+                onClick={() => onCloseMobile?.()}
+              >
+                <ChatsIcon size={17} />
+              </Link>
               <button
                 className="sidebar-rail-btn"
                 onClick={onOpenCommandPalette}

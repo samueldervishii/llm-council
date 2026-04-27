@@ -36,7 +36,7 @@
   box-shadow: var(--shadow-pop);
   display: flex;
   flex-direction: column;
-  font-family: var(--font-sans);
+  font-family: inherit;
   color: var(--ink);
   overflow: hidden;
   animation: slideDown 0.2s ease;
@@ -75,7 +75,7 @@
   outline: none;
   color: var(--ink);
   font-size: 14.5px;
-  font-family: var(--font-sans);
+  font-family: inherit;
 }
 
 .command-palette-input input::placeholder {
@@ -136,7 +136,7 @@
 }
 
 .command-palette-group-title {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10px;
   font-weight: 400;
   text-transform: uppercase;
@@ -155,7 +155,7 @@
   cursor: pointer;
   transition: all 0.12s ease;
   border: 1px solid transparent;
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13.5px;
   color: var(--ink-2);
 }
@@ -192,7 +192,7 @@
 }
 
 .command-palette-item-title {
-  font-family: var(--font-sans);
+  font-family: inherit;
   font-size: 13.5px;
   color: inherit;
   white-space: nowrap;
@@ -211,7 +211,7 @@
 }
 
 .command-palette-item-description {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   color: var(--muted);
   white-space: nowrap;
@@ -235,7 +235,7 @@
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
   border-top: 1px solid var(--rule);
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 11px;
   color: var(--muted);
   background: var(--paper);
@@ -278,7 +278,7 @@
   background: var(--paper);
   border: 1px solid var(--rule-2);
   border-radius: 3px;
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   font-weight: 500;
   color: var(--ink-2);

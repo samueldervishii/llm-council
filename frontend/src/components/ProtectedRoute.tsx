@@ -40,7 +40,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
           </div>
           <h2 className="network-error-title">Cannot reach the server</h2>
           <p className="network-error-text">
-            Cortex cannot connect right now. Check your internet connection.
+            Étude cannot connect right now. Check your internet connection.
           </p>
           <p className="network-error-retry-hint">
             We&apos;ll keep retrying in the background. See the{' '}

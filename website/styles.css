@@ -65,7 +65,7 @@ body {
     linear-gradient(180deg, #f6f3ec 0%, var(--paper) 28%, #f4f1ea 100%);
   color: var(--text-primary);
   line-height: 1.6;
-  font-family: var(--font-sans);
+  font-family: inherit
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

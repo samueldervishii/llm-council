@@ -1,4 +1,4 @@
-# Cortex
+# Étude
 
 A clean AI chat platform built with FastAPI and React, powered by Anthropic Claude models
 

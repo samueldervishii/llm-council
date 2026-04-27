@@ -62,7 +62,7 @@
   --radius-btn: 6px;
   --radius-input: 4px;
 
-  font-family: var(--font-sans);
+  font-family: var(--font-serif) !important;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light;
@@ -185,7 +185,7 @@ body {
   -webkit-text-size-adjust: 100%;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: inherit;
   transition:
     background 0.3s,
     color 0.3s;
@@ -227,7 +227,7 @@ button:focus-visible {
 
 /* ─── kbd chips ─── */
 kbd {
-  font-family: var(--font-mono);
+  font-family: var(--font-serif);
   font-size: 10.5px;
   padding: 1px 5px;
   border: 1px solid var(--rule-2);

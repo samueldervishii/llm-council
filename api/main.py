@@ -107,7 +107,7 @@ async def auto_delete_background_task():
 async def lifespan(_app: FastAPI):
     """Application lifespan handler."""
     global _auto_delete_task
-    logger.info("Cortex API starting...")
+    logger.info("Étude API starting...")
     logger.info(f"AI Model: {CHAT_MODEL['name']}")
 
     # Initialize Prometheus metrics
@@ -156,7 +156,7 @@ async def lifespan(_app: FastAPI):
         _auto_delete_task = asyncio.create_task(auto_delete_background_task())
 
     yield
-    logger.info("Cortex API shutting down...")
+    logger.info("Étude API shutting down...")
 
     # Cancel auto-delete background task
     if _auto_delete_task is not None:
@@ -176,7 +176,7 @@ async def lifespan(_app: FastAPI):
 
 
 DESCRIPTION = """
-# Cortex API
+# Étude API
 
 A clean AI chat platform powered by Claude models.
 
@@ -209,7 +209,7 @@ tags_metadata = [
 is_production = settings.environment == "production"
 
 app = FastAPI(
-    title="Cortex API" if not is_production else "API",
+    title="Étude API" if not is_production else "API",
     description=DESCRIPTION if not is_production else "",
     version=VERSION if not is_production else "",
     lifespan=lifespan,
@@ -311,7 +311,7 @@ async def add_security_headers(request: Request, call_next):
         "connect-src 'self'; "
         "frame-ancestors 'none'"
     )
-    response.headers["Server"] = "Cortex"
+    response.headers["Server"] = "Etude"
     if settings.environment == "production":
         response.headers["Strict-Transport-Security"] = (
             "max-age=31536000; includeSubDomains; preload"

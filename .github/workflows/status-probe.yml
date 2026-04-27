@@ -1,6 +1,6 @@
 name: Status Probe
 
-# Runs every 5 minutes against the public Cortex backend and writes a
+# Runs every 5 minutes against the public Étude backend and writes a
 # single row into the `service_checks` collection on MongoDB Atlas.
 # Because this workflow runs on GitHub's infrastructure (not on Render),
 # it can still record a "down" sample when the backend is asleep or dead

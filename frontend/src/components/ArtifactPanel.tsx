@@ -467,7 +467,7 @@ function ArtifactPanel({ sessionId, isOpen, onClose }: ArtifactPanelProps) {
               <FileText size={20} className="right-panel-empty-icon" />
               <p>No artifacts yet</p>
               <p className="right-panel-hint">
-                Ask Cortex to write, draft, or generate a document and it will appear here.
+                Ask Étude to write, draft, or generate a document and it will appear here.
               </p>
             </div>
           ) : !selectedArtifact ? (

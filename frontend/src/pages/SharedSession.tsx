@@ -95,7 +95,7 @@ function SharedSession() {
         <h1>Session Not Found</h1>
         <p>{error}</p>
         <Link to="/" className="shared-home-link">
-          Go to Cortex
+          Go to Étude
         </Link>
       </div>
     )
@@ -120,7 +120,7 @@ function SharedSession() {
           Shared Session
         </div>
         <Link to="/" className="new-chat-btn">
-          Open Cortex
+          Open Étude
         </Link>
       </div>
 

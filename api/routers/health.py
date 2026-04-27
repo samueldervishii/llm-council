@@ -150,7 +150,7 @@ async def status_uptime():
                 {
                     "id": "api",
                     "label": "API Server",
-                    "description": "Cortex backend",
+                    "description": "Étude backend",
                     "current_status": "operational",
                     "last_checked": now_iso,
                     "uptime_24h": None,

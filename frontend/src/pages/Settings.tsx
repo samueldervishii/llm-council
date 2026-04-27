@@ -647,7 +647,7 @@ function Settings() {
                     >
                       personal preferences
                     </a>{' '}
-                    should Cortex consider in responses?
+                    should Étude consider in responses?
                   </label>
                   <p className="settings-field-hint">
                     Your preferences will apply to all conversations, within{' '}
@@ -657,7 +657,7 @@ function Settings() {
                       rel="noopener noreferrer"
                       className="settings-label-link"
                     >
-                      Cortex's guidelines
+                      Étude's guidelines
                     </a>
                     .
                   </p>
@@ -688,7 +688,7 @@ function Settings() {
               <div className="settings-section">
                 <h2>Appearance</h2>
                 <p className="settings-field-hint" style={{ marginTop: '-0.25rem' }}>
-                  Choose how Cortex looks. "System" follows your device setting.
+                  Choose how Étude looks. "System" follows your device setting.
                 </p>
                 <div className="theme-toggle-group" role="radiogroup" aria-label="Theme preference">
                   {(['light', 'dark', 'system'] as ThemeMode[]).map((mode) => (
@@ -953,9 +953,7 @@ function Settings() {
                       aria-expanded={autoDeleteOpen}
                     >
                       <span>
-                        {settings.auto_delete_days
-                          ? `${settings.auto_delete_days} days`
-                          : 'Never'}
+                        {settings.auto_delete_days ? `${settings.auto_delete_days} days` : 'Never'}
                       </span>
                       <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
                         <path
@@ -1023,8 +1021,8 @@ function Settings() {
           {activeTab === 'about' && (
             <div className="settings-section">
               <div className="about-brand">
-                <img src="/IMG_6935.png" alt="" className="about-logo" />
-                <h2 className="about-title">Cortex</h2>
+                <img src="/logo.png" alt="" className="about-logo" />
+                <h2 className="about-title">Étude</h2>
               </div>
               <p className="about-desc">
                 A clean, fast AI chat platform powered by Anthropic's Claude models. Designed to

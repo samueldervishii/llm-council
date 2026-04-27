@@ -532,7 +532,7 @@ async def stream_response(
 
     # Build system prompt — add citation instructions when file chunks are available
     system_prompt = (
-        "You are Cortex, a helpful AI assistant. "
+        "You are Étude, a helpful AI assistant. "
         "When the user asks you to write, create, or generate a document (essay, thesis, report, letter, etc.), "
         "output the document content directly in markdown. The platform will add download buttons automatically. "
         "For normal questions and conversations, respond naturally and conversationally. "
@@ -832,7 +832,7 @@ async def export_session_docx(
 
     docx_bytes = await asyncio.to_thread(session_to_docx, session)
     title_slug = (session.title or "chat")[:30].replace(" ", "-").lower()
-    filename = f"cortex-{title_slug}.docx"
+    filename = f"etude-{title_slug}.docx"
 
     return Response(
         content=docx_bytes,
@@ -862,7 +862,7 @@ async def export_message_docx(
 
     msg = session.messages[message_index]
     docx_bytes = await asyncio.to_thread(message_to_docx, msg.content, session.title)
-    filename = f"cortex-document.docx"
+    filename = f"etude-document.docx"
 
     return Response(
         content=docx_bytes,

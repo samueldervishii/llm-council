@@ -206,7 +206,7 @@
   border-radius: var(--radius-btn);
   font-size: 0.9rem;
   font-weight: 500;
-  font-family: var(--font-sans);
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.12s;
   background: var(--paper);

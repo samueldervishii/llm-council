@@ -17,7 +17,7 @@ function NotFoundPage() {
           </p>
           <div className="not-found-actions">
             <button className="not-found-btn primary" onClick={() => navigate('/')}>
-              Go to Cortex
+              Go to Étude
             </button>
             <button className="not-found-btn" onClick={() => navigate(-1)}>
               Go back

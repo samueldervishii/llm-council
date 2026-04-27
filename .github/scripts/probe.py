@@ -2,10 +2,10 @@
 
 This script is the "observer" in the status tracking system. It runs on
 GitHub's infrastructure (not on Render), so it can still record a "down"
-sample when the Cortex backend is asleep or dead.
+sample when the Étude backend is asleep or dead.
 
 Flow:
-    1. HTTP GET against /health on the Cortex backend.
+    1. HTTP GET against /health on the Étude backend.
     2. Categorize the outcome into operational / degraded / down based on
        HTTP status code and whether we got a response at all.
     3. Connect directly to MongoDB Atlas (not through the backend) and
@@ -18,7 +18,9 @@ Why not talk to the backend's /status/probe endpoint?
     sample is recorded.
 
 Environment variables (set as GitHub Actions secrets):
-    CORTEX_HEALTH_URL   Full URL to the /health endpoint on Cortex API
+    CORTEX_HEALTH_URL   Full URL to the /health endpoint on Étude API
+                        (var name kept as CORTEX_HEALTH_URL because it's
+                        already wired up as a GitHub Actions secret)
     MONGODB_URL         mongodb+srv://... connection string for Atlas
     MONGODB_DATABASE    Database name (usually `thesis_db`)
 """
@@ -91,7 +93,7 @@ def _single_probe(url: str) -> tuple[int | None, int | None]:
 
 
 def probe_api(url: str) -> dict:
-    """Hit the Cortex /health endpoint and return a probe result dict.
+    """Hit the Étude /health endpoint and return a probe result dict.
 
     If the first attempt times out (common with Render cold starts),
     waits briefly and retries once — the instance should be warm by then.

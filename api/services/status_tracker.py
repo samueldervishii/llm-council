@@ -2,7 +2,7 @@
 
 Probes are written by an external GitHub Actions workflow (see
 `.github/workflows/status-probe.yml`), which runs on GitHub's
-infrastructure so it can still record "down" samples when the Cortex
+infrastructure so it can still record "down" samples when the Étude
 backend is asleep or dead. This module only reads from the collection.
 """
 
@@ -15,7 +15,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 # on the status page. The external prober must use these same ids when
 # inserting documents.
 SERVICES = [
-    {"id": "api", "label": "API Server", "description": "Cortex backend"},
+    {"id": "api", "label": "API Server", "description": "Étude backend"},
     {"id": "database", "label": "Database", "description": "MongoDB Atlas"},
 ]
 

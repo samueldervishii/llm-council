@@ -71,7 +71,7 @@ export default function PWAInstallPrompt() {
       <div className="pwa-install-content">
         <DownloadSimple size={20} />
         <div className="pwa-install-text">
-          <strong>Install Cortex</strong>
+          <strong>Install Étude</strong>
           <span>Add to your home screen for quick access</span>
         </div>
       </div>

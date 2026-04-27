@@ -130,7 +130,7 @@ function Message({
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'cortex-document.docx'
+      a.download = 'etude-document.docx'
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
@@ -217,11 +217,11 @@ function Message({
     return (
       <div className="message assistant message-artifact">
         <div className="message-avatar message-avatar-cortex" aria-hidden="true">
-          <img src="/IMG_6935.png" alt="" />
+          <img src="/logo.png" alt="" />
         </div>
         <div className="message-body">
           <div className="message-header">
-            <span className="message-role-label">Cortex</span>
+            <span className="message-role-label">Étude</span>
           </div>
           <div className="artifact-card">
             <div className="artifact-header">
@@ -272,11 +272,11 @@ function Message({
   return (
     <div className="message assistant">
       <div className="message-avatar message-avatar-cortex" aria-hidden="true">
-        <img src="/IMG_6935.png" alt="" />
+        <img src="/logo.png" alt="" />
       </div>
       <div className="message-body message-assistant-content">
         <div className="message-header">
-          <span className="message-role-label">Cortex</span>
+          <span className="message-role-label">Étude</span>
           {modelName && <span className="model-name">{modelName}</span>}
           {formattedTime && <span className="response-time">{formattedTime}</span>}
         </div>

@@ -215,7 +215,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             placeholder={
               attachedFile
                 ? 'Add a message about this file...'
-                : placeholder || 'Ask Cortex anything. Type / for commands.'
+                : placeholder || 'Ask Étude anything. Type / for commands.'
             }
             rows={1}
             maxLength={MAX_CHARS}
@@ -234,9 +234,6 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
                 <Paperclip size={18} weight="regular" />
                 {centered && <span>Attach file</span>}
               </button>
-              <span className="input-slash-hint" aria-hidden="true">
-                /&nbsp;/
-              </span>
             </div>
             <input
               ref={fileInputRef}
@@ -282,7 +279,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
           </div>
         </div>
 
-        <p className="input-footer-note">Cortex can make mistakes. Verify anything load-bearing.</p>
+        <p className="input-footer-note">Étude can make mistakes. Verify anything load-bearing.</p>
 
         {dragOver && (
           <div className="drop-overlay">
