@@ -240,7 +240,7 @@ async def fetch_url(url: str) -> tuple[str, str]:
     import ssl
 
     base_headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; CortexBot/1.0; +https://cortex-al.vercel.app)",
+        "User-Agent": "Mozilla/5.0 (compatible; CortexBot/1.0; +https://etude-al.vercel.app)",
         "Accept": "text/html,application/xhtml+xml,*/*",
         "Accept-Language": "en-US,en;q=0.9",
     }

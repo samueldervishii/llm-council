@@ -640,7 +640,7 @@ function Settings() {
                   <label>
                     What{' '}
                     <a
-                      href="https://cortex-al.vercel.app/personalization.html"
+                      href="https://etude-al.vercel.app/personalization.html"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="settings-label-link"
@@ -652,7 +652,7 @@ function Settings() {
                   <p className="settings-field-hint">
                     Your preferences will apply to all conversations, within{' '}
                     <a
-                      href="https://cortex-al.vercel.app/usage-policy.html"
+                      href="https://etude-al.vercel.app/usage-policy.html"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="settings-label-link"
@@ -1029,7 +1029,7 @@ function Settings() {
                 help students write, research, and build their thesis — simply, securely, and
                 affordably.{' '}
                 <a
-                  href="https://cortex-al.vercel.app"
+                  href="https://etude-al.vercel.app"
                   className="auth-learn-more"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -1107,7 +1107,7 @@ function Settings() {
                     </div>
                   </Link>
                   <a
-                    href="https://cortex-al.vercel.app/support.html"
+                    href="https://etude-al.vercel.app/support.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="about-link-card"

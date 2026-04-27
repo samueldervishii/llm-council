@@ -130,7 +130,7 @@ function AuthPage() {
             <p className="auth-subtitle">
               Intelligent AI conversations, beautifully simple.{' '}
               <a
-                href="https://cortex-al.vercel.app"
+                href="https://etude-al.vercel.app"
                 className="auth-learn-more"
                 target="_blank"
                 rel="noopener noreferrer"

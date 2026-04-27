@@ -361,7 +361,7 @@ function Sidebar({
           </a>
           <a
             className="sidebar-account-item"
-            href="https://cortex-al.vercel.app/support.html"
+            href="https://etude-al.vercel.app/support.html"
             target="_blank"
             rel="noopener noreferrer"
             onClick={closeAccountMenu}
@@ -372,7 +372,7 @@ function Sidebar({
           </a>
           <a
             className="sidebar-account-item"
-            href="https://cortex-al.vercel.app/release.html"
+            href="https://etude-al.vercel.app/release.html"
             target="_blank"
             rel="noopener noreferrer"
             onClick={closeAccountMenu}
